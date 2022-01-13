@@ -11,23 +11,7 @@ void main()
     while (1)
     {
         KeyNum = Key();
-        switch (KeyNum)
-        {
-        case 1:
-            P0_0 = ~P0_0;
-            break;
-        case 2:
-            P0_1 = ~P0_1;
-            break;
-        case 3:
-            P0_2 = ~P0_2;
-            break;
-        case 4:
-            P0_3 = ~P0_3;
-            break;
-        default:
-            break;
-        }
+        
     }
 }
 
