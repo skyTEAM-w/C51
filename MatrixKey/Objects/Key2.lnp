@@ -1,0 +1,4 @@
+".\Objects\main2.obj",
+".\Objects\BasicalFunc.obj" 
+TO ".\Objects\Key2" 
+PRINT(".\Listings\Key2.m51") RAMSIZE(256) 

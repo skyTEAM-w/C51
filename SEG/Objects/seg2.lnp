@@ -1,0 +1,5 @@
+".\Objects\main2.obj",
+".\Objects\Delay.obj",
+".\Objects\SEG.obj" 
+TO ".\Objects\seg2" 
+PRINT(".\Listings\seg2.m51") RAMSIZE(256) 

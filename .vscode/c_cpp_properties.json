@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:\\Program files\\Keil\\C51\\INC",
+                "D:/Program files/Keil/C51/INC/Atmel",
+                "D:\\Desktop\\People UP\\C51\\BasicalFunc",
+                "${workspaceFolder}"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "sbit=char",
+                "code=const",
+                "xdata=",
+                "data=",
+                "sfr=char",
+                "interrupt=",
+                "bit=u8"
+            ],
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "D:/MinGW/mingw64/bin/g++.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

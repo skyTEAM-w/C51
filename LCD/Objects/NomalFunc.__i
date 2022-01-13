@@ -1,0 +1,1 @@
+"..\NomalFunc\NomalFunc.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(..\NomalFunc) DEBUG OBJECTEXTEND PRINT(.\Listings\NomalFunc.lst) TABS (2) OBJECT(.\Objects\NomalFunc.obj)
