@@ -378,8 +378,8 @@ void Timer0_Init(void)		//1毫秒@12.000MHz
 void Timer0_Routine() interrupt 1
 {
     static unsigned int T0_Count = 0;
-    TH0 = 0x18;
-    TL0 = 0xFC;
+    TL0 = 0x18;
+    TH0 = 0xFC;
     T0_Count++;
     if (T0_Count >= 1000)
     {
