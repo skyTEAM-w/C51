@@ -1,0 +1,5 @@
+".\Objects\main2.obj",
+".\Objects\BasicalFunc.obj" 
+TO ".\Objects\SERIAL2" 
+PRINT(".\Listings\SERIAL2.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 
