@@ -34,4 +34,9 @@ extern unsigned char Key();
 /*Timer0_Init*/
 extern void Timer0_Init(void);
 
+/*Serial Ports*/
+extern void Uart_Init(void);
+extern void Uart_SendByte(unsigned char Byte);
+// extern void Uart_RecieveByte();
+
 #endif
