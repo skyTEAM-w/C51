@@ -2,7 +2,7 @@
  * @file BasicalFunc.h
  * @author WuChengpei_Sky (w2563070231@outlook.com)
  * @brief 人人卓越工程51单片机常用函数库
- * @version 1.1
+ * @version 1.2
  * @date 2022-01-11
  * 
  * @copyright Copyright (c) 2022
@@ -25,7 +25,7 @@ extern void LCD_ShowSignedNum(unsigned char Line,unsigned char Column,int Number
 extern void LCD_ShowHexNum(unsigned char Line,unsigned char Column,unsigned int Number,unsigned char Length);
 extern void LCD_ShowBinNum(unsigned char Line,unsigned char Column,unsigned int Number,unsigned char Length);
 
-/*Martix Key*/
+/*Matrix Key*/
 extern unsigned char MatrixKey();
 
 /*Key*/

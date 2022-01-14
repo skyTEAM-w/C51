@@ -288,7 +288,7 @@ void LCD_ShowBinNum(unsigned char Line, unsigned char Column, unsigned int Numbe
 }
 
 /*---------------------------------------
-Martix Key
+Matrix Key
 ---------------------------------------*/
 
 /**
