@@ -5,6 +5,8 @@ This is a project created to learn C51.
 
 此项目共有1个主要文件夹“BasicalFunc”，以及多个存放项目的文件夹。
 
+*仓库内所有代码均不能直接放入普中科技的开发板中，请使用者自行对照开发板原理图进行更改！*
+
 ## BasicalFunc
 
 此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，随时更新。
