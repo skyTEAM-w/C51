@@ -14,7 +14,9 @@
 
 extern void Delay(unsigned int X_ms); //@12.000MHz Delay(X_ms)
 
+/*Nixie*/
 extern void SEG(unsigned char Location, unsigned char Number); //SEG View (Location, Number)
+extern void SEGScan(unsigned char Data, char ScanMode);
 
 /*LCD1602*/
 extern void LCD_Init();
