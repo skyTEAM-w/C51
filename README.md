@@ -84,17 +84,117 @@ void SEG(unsigned char Location, unsigned char Number)
 }
 ```
 数码管的具体显示，需要通过扫描实现。
+
+##### 更新
+全新的数码管扫描函数，可以实现0~65535范围数据在数码管的显示。
+**定义：**
+
+```c
+extern void SEGScan(unsigned int Data, char ScanMode)
+```
+**实现：**
+
+```c
+/**
+ * @brief 数码管扫描函数，最大可在数码管中显示0~65535范围内的整数。
+ * 格式：右对齐
+ * 
+ * @param Data 显示的数据 范围：
+ * L_MODE与R_MODE：0~9999
+ * N_MODE:0~65535
+ * @param ScanMode 输出模式：
+ * 'L''l'：左侧数码管输出
+ * 'R''r'：右侧数码管输出
+ * 'N''n'：双侧数码管共同输出
+ */
+void SEGScan(unsigned int Data, char ScanMode)
+{
+    unsigned char TempData[8];
+    int count = 0;
+    switch (ScanMode)
+    {R_MODE
+    case 'l':
+    case 'L':
+    {
+        TempData[0] = SEGNum[Data / 1000];
+        TempData[1] = SEGNum[(Data % 1000) / 100];
+        TempData[2] = SEGNum[((Data % 1000) % 100) / 10];
+        TempData[3] = SEGNum[((Data % 1000) % 100) % 10];
+        for (count = 0; count < 3 && TempData[count] == 0x3F; count++)
+        {
+            TempData[count] = 0x00;
+        }
+        for (count = 1; count <= 4; count++)
+        {
+            P1 = ~(0x01 << (8 - count));
+            P0 = ~TempData[count - 1];
+            Delay(1);
+            P0 = 0xFF;
+        }
+        break;
+    }
+    case 'r':
+    case 'R':
+    {
+        TempData[4] = SEGNum[Data / 1000];
+        TempData[5] = SEGNum[(Data % 1000) / 100];
+        TempData[6] = SEGNum[((Data % 1000) % 100) / 10];
+        TempData[7] = SEGNum[((Data % 1000) % 100) % 10];
+        for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
+        {
+            TempData[count] = 0x00;
+        }
+        for (count = 4; count <= 8; count++)
+        {
+            P1 = ~(0x01 << (8 - count));
+            P0 = ~TempData[count - 1];
+            Delay(1);
+            P0 = 0xFF;
+        }
+        break;
+    }
+    case 'n':
+    case 'N':
+    {
+        unsigned int Mode = 10;
+        for (count = 7; count >= 0; count--)
+        {
+            TempData[count] = SEGNum[Data % 10];
+            Mode = Mode * 10;
+        }
+        for (count = 0; count < 4 && TempData[count] == 0x3F; count++)
+        {
+            TempData[count] = 0x00;
+        }
+        for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
+        {
+            TempData[count] = 0x00;
+        }
+        for (count = 1; count <= 8; count++)
+        {
+            P1 = ~(0x01 << (8 - count));
+            P0 = ~TempData[count - 1];
+            Delay(1);
+            P0 = 0xFF;
+        }
+        break;
+    }
+    }
+}
+
+```
+
 #### LCD1602
 非自编函数，不予以解释。具体见BasicalFunc文件夹内的LCD1602文件。
 #### Matrix Key
 矩阵键盘扫描程序，获取按键键码。
 顺序如下：
-|      |      |      |      |
-| ---- | ---- | ---- | ---- |
-| 1    | 2    | 3    | 4    |
-| 5    | 6    | 7    | 8    |
-| 9    | 10   | 11   | 12   |
-| 13   | 14   | 15   | 16   |
+|     |     |     |     |
+| --- | --- | --- | --- |
+| 1   | 2   | 3   | 4   |
+| 5   | 6   | 7   | 8   |
+| 9   | 10  | 11  | 12  |
+| 13  | 14  | 15  | 16  |
 
 **声明：**
 ```c
