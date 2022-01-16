@@ -129,8 +129,8 @@ void SEGScan(unsigned int Data, char ScanMode)
         unsigned int Mode = 10;
         for (count = 7; count >= 0; count--)
         {
-            TempData[count] = SEGNum[Data % 10];
-            Mode = Mode * 10;
+            TempData[count] = SEGNum[Data % Mode];
+            Data = Data / 10;
         }
         for (count = 0; count < 4 && TempData[count] == 0x3F; count++)
         {
