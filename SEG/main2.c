@@ -2,6 +2,7 @@
 //#include <NomalFunc.h>
 #include "Delay.h"
 #include "SEG.h"
+//#include "BasicalFunc.h"
 
 //unsigned char code SEGNum[] = {
 //    0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
@@ -33,8 +34,6 @@
 
 void main(){
     while(1){
-        SEG(1, 1);
-        SEG(2, 2);
-        SEG(3, 3);
+        SEGScan(12000, 'n');
     }
 }

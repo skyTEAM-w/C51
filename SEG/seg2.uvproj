@@ -396,6 +396,11 @@
               <FileType>1</FileType>
               <FilePath>.\SEG.c</FilePath>
             </File>
+            <File>
+              <FileName>SEG.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\SEG\SEG.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
