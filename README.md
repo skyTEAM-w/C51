@@ -10,8 +10,12 @@ This is a project created to learn C51.
 ## BasicalFunc
 
 此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，随时更新。
+
+目前已将各方法分到各同名文件中，方便查找。
+
 ### 结构
 目前，基础库一共有7类函数：
+
 1. Delay MCU延时函数
 2. SEG 数码管显示函数
 3. LCD1602 初始化以及各类显示函数
@@ -19,17 +23,25 @@ This is a project created to learn C51.
 5. Key 独立按键键码获取函数
 6. Timer0 定时器0初始化函数以及其定时中断模板
 7. SerialPorts 串口通信初始化与传输函数(部分)
+
 ### 使用
+
 使用此库时，需要将`BasicalFunc.h`与`BasicalFunc.c`，两个文件复制到与Keil5项目源代码相同的文件夹中。之后，在Keil5中“Add existing Files……”加入项目。最后在main文件添加`#include "BasicalFunc.h"`即可。
+
 ### 函数介绍
+
 #### Delay
+
 通过MCU自身运算，进行的延时，此过程中无法使用MCU进行其他操作。
 **定义：**
+
 ```C
 extern void Delay(unsigned int X_ms); //@12.000MHz Delay(X_ms)
 ```
+
 **实现：**
 ```c
+
 /**
  * @brief 延时X毫秒
  *
@@ -52,21 +64,28 @@ void Delay(unsigned int X_ms) //@12.000MHz
 }
 
 ```
+
 #### SEG
+
 分为数码管数字显示数组与显示函数两部分。
 
 **数组定义：**
+
 ```c
 unsigned char code SEGNum[] = {
     0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
     0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71,
     0x00}; // Make an Arry to save the one's complement of SEG
 ```
+
 **函数声明：**
+
 ```c
 extern void SEG(unsigned char Location, unsigned char Number); //SEG View (Location, Number)
 ```
+
 **函数实现：**
+
 ```c
 /**
  * @brief 数码管显示数字
@@ -83,15 +102,19 @@ void SEG(unsigned char Location, unsigned char Number)
     P0 = 0xFF;
 }
 ```
+
 数码管的具体显示，需要通过扫描实现。
 
 ##### 更新
+
 全新的数码管扫描函数，可以实现0~65535范围数据在数码管的显示。
+
 **定义：**
 
 ```c
 extern void SEGScan(unsigned int Data, char ScanMode)
 ```
+
 **实现：**
 
 ```c
@@ -185,8 +208,11 @@ void SEGScan(unsigned int Data, char ScanMode)
 ```
 
 #### LCD1602
+
 非自编函数，不予以解释。具体见BasicalFunc文件夹内的LCD1602文件。
+
 #### Matrix Key
+
 矩阵键盘扫描程序，获取按键键码。
 顺序如下：
 |     |     |     |     |
@@ -197,10 +223,13 @@ void SEGScan(unsigned int Data, char ScanMode)
 | 13  | 14  | 15  | 16  |
 
 **声明：**
+
 ```c
 extern unsigned char MatrixKey();
 ```
+
 **实现：**
+
 ```c
 unsigned char MatrixKey()
 {
@@ -237,14 +266,19 @@ unsigned char MatrixKey()
     return KeyNum;
 }
 ```
+
 #### Key
+
 获取独立按键键码。键码与PCB板标号相同。
 
 **声明：**
+
 ```c
 extern unsigned char Key();
 ```
+
 **实现：**
+
 ```c
 unsigned char Key()
 {
@@ -258,33 +292,40 @@ unsigned char Key()
     return KeyNum;
 }
 ```
+
 #### 定时器初始化及其计时模板
+
 通过中断，在MCU外执行计时操作。
 
 **初始化声明：**
+
 ```c
 extern void Timer0_Init(void);
 ```
+
 **初始化实现：**
+
 ```c
 /**
  * @brief 定时器器0函数初始化函数，12MHz
  * @retval 无
  */
-void Timer0_Init(void)		//1毫秒@12.000MHz
+void Timer0_Init(void)  //1毫秒@12.000MHz
 {
-	TMOD &= 0xF0;		//设置定时器模式
-	TMOD |= 0x01;		//设置定时器模式
-	TL0 = 0x18;		//设置定时初始值
-	TH0 = 0xFC;		//设置定时初始值
-	TF0 = 0;		//清除TF0标志
-	TR0 = 1;		//定时器0开始计时
+    TMOD &= 0xF0;		//设置定时器模式
+    TMOD |= 0x01;  //设置定时器模式
+    TL0 = 0x18;		//设置定时初始值
+    TH0 = 0xFC;		//设置定时初始值
+    TF0 = 0;		//清除TF0标志
+    TR0 = 1;		//定时器0开始计时
     ET0 = 1;        //设置中断标志
     EA = 1;
     PT0 = 0;
 }
 ```
+
 **1S计时器模板：**
+
 ```c
 void Timer0_Routine() interrupt 1
 {
@@ -299,35 +340,44 @@ void Timer0_Routine() interrupt 1
     }
 }
 ```
+
 #### SerialPorts
+
 串口通信设置部分，仅包含初始化与向电脑发送部分，后续将会添加。
 
 **初始化声明：**
+
 ```c
 extern void Uart_Init(void);
 ```
+
 **发送声明：**
+
 ```c
 extern void Uart_SendByte(unsigned char Byte);
 ```
+
 **初始化实现：**
+
 ```c
 void Uart_Init(void)		//4800bps@12.000MHz
 {
-	PCON |= 0x80;		//使能波特率倍速位SMOD
-	SCON = 0x50;		//8位数据,可变波特率
-	TMOD &= 0x0F;		//设置定时器模式
-	TMOD |= 0x20;		//设置定时器模式
-	TL1 = 0xF3;		//设置定时初始值
-	TH1 = 0xF3;		//设置定时重载值
-	ET1 = 0;		//禁止定时器1中断
-	TR1 = 1;		//定时器1开始计时
+    PCON |= 0x80;		//使能波特率倍速位SMOD
+    SCON = 0x50;		//8位数据,可变波特率
+    TMOD &= 0x0F;		//设置定时器模式
+    TMOD |= 0x20;		//设置定时器模式
+    TL1 = 0xF3;		//设置定时初始值
+    TH1 = 0xF3;		//设置定时重载值
+    ET1 = 0;		//禁止定时器1中断
+    TR1 = 1;		//定时器1开始计时
     EA = 1;         //中断设置
     ES = 1;
 }
 ```
+
 此初始化仅针对单片机与电脑相互的串口通信，不保证单向传输时不会发送异常中断，若遇到，删除中断设置即可。
 **发送实现：**
+
 ```c
 void Uart_SendByte(unsigned char Byte)
 {
@@ -336,7 +386,9 @@ void Uart_SendByte(unsigned char Byte)
     TI = 0;     //TI软件复位
 }
 ```
+
 **接收模板：**
+
 ```c
 /*串口控制LED样例*/
 void UART_Routine() interrupt 4
