@@ -2,8 +2,8 @@
  * @file BasicalFunc.h
  * @author WuChengpei_Sky (w2563070231@outlook.com)
  * @brief 人人卓越工程51单片机常用函数库
- * @version 1.3
- * @date 2022-01-18
+ * @version 1.2
+ * @date 2022-01-11
  * 
  * @copyright Copyright (c) 2022
  * 
@@ -40,15 +40,5 @@ extern void Timer0_Init(void);
 extern void Uart_Init(void);
 extern void Uart_SendByte(unsigned char Byte);
 // extern void Uart_RecieveByte();
-
-/*DS1302*/
-extern unsigned char DS1302_Time[];
-
-extern void DS1302_Init();
-extern unsigned char DS1302_ReadByte(unsigned char Command);
-extern void DS1302_WriteByte(unsigned char Command, unsigned char Data);
-extern void DS1302_SetTime();
-extern void DS1302_ReadTime();
-
 
 #endif

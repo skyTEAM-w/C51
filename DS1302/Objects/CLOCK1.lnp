@@ -1,0 +1,5 @@
+".\Objects\main.obj",
+".\Objects\BasicalFunc.obj",
+".\Objects\DS1302.obj" 
+TO ".\Objects\CLOCK1" 
+PRINT(".\Listings\CLOCK1.m51") RAMSIZE(256) 
