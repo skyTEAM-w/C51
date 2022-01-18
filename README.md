@@ -1,4 +1,5 @@
 # C51
+
 This is a project created to learn C51.
 
 ~~就不放洋屁了~~
@@ -11,9 +12,10 @@ This is a project created to learn C51.
 
 此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，随时更新。
 
-目前已将各方法分到各同名文件中，方便查找。
+目前已将各方法分到各同名文件中，方便查找，使用方法与前面一样。
 
 ### 结构
+
 目前，基础库一共有7类函数：
 
 1. Delay MCU延时函数
@@ -313,12 +315,12 @@ extern void Timer0_Init(void);
  */
 void Timer0_Init(void)  //1毫秒@12.000MHz
 {
-    TMOD &= 0xF0;		//设置定时器模式
+    TMOD &= 0xF0;  //设置定时器模式
     TMOD |= 0x01;  //设置定时器模式
-    TL0 = 0x18;		//设置定时初始值
-    TH0 = 0xFC;		//设置定时初始值
-    TF0 = 0;		//清除TF0标志
-    TR0 = 1;		//定时器0开始计时
+    TL0 = 0x18;  //设置定时初始值
+    TH0 = 0xFC;  //设置定时初始值
+    TF0 = 0;  //清除TF0标志
+    TR0 = 1;  //定时器0开始计时
     ET0 = 1;        //设置中断标志
     EA = 1;
     PT0 = 0;
@@ -361,16 +363,16 @@ extern void Uart_SendByte(unsigned char Byte);
 **初始化实现：**
 
 ```c
-void Uart_Init(void)		//4800bps@12.000MHz
+void Uart_Init(void)  //4800bps@12.000MHz
 {
-    PCON |= 0x80;		//使能波特率倍速位SMOD
-    SCON = 0x50;		//8位数据,可变波特率
-    TMOD &= 0x0F;		//设置定时器模式
-    TMOD |= 0x20;		//设置定时器模式
-    TL1 = 0xF3;		//设置定时初始值
-    TH1 = 0xF3;		//设置定时重载值
-    ET1 = 0;		//禁止定时器1中断
-    TR1 = 1;		//定时器1开始计时
+    PCON |= 0x80;  //使能波特率倍速位SMOD
+    SCON = 0x50;  //8位数据,可变波特率
+    TMOD &= 0x0F;  //设置定时器模式
+    TMOD |= 0x20;  //设置定时器模式
+    TL1 = 0xF3;  //设置定时初始值
+    TH1 = 0xF3;  //设置定时重载值
+    ET1 = 0;  //禁止定时器1中断
+    TR1 = 1;  //定时器1开始计时
     EA = 1;         //中断设置
     ES = 1;
 }
@@ -442,7 +444,7 @@ extern void DS1302_ReadTime();  //读取时间
 
 **函数的集体实现：**
 
-包含了两个BCD与十进制互化的函数，不能外表调用。
+包含了两个BCD与十进制互化的函数，不能外部调用。
 
 ```c
 /**
