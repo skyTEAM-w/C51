@@ -8,5 +8,6 @@ extern unsigned char DS1302_ReadByte(unsigned char Command);
 extern void DS1302_WriteByte(unsigned char Command, unsigned char Data);
 extern void DS1302_SetTime();
 extern void DS1302_ReadTime();
+extern void DS1302_DayOf();
 
 #endif

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 1   
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE BASICALFUNC
@@ -12,576 +12,744 @@ line level    source
    2           * @file BasicalFunc.c
    3           * @author WuChengpei_Sky (w2563070231@outlook.com)
    4           * @brief 人人卓越工程51单片机常用函数库的实现
-   5           * @version 1.2
-   6           * @date 2022-01-11
+   5           * @version 1.3
+   6           * @date 2022-01-18
    7           *
    8           * @copyright Copyright (c) 2022
    9           *
   10           */
   11          
   12          #include <REGX52.H>
-  13          // #include <NomalFunc.h>
-  14          
-  15          /*---------------------------------------
-  16          Delay
-  17          ---------------------------------------*/
-  18          
-  19          /**
-  20           * @brief 延时X毫秒
-  21           *
-  22           * @param X_ms 延迟的毫秒数
-  23           * @retval 无
-  24           */
-  25          void Delay(unsigned int X_ms) //@12.000MHz
-  26          {
-  27   1          unsigned char i, j;
-  28   1          while (X_ms--)
-  29   1          {
-  30   2              /* code */
-  31   2              i = 2;
-  32   2              j = 239;
-  33   2              do
-  34   2              {
-  35   3                  while (--j)
-  36   3                      ;
-  37   3              } while (--i);
-  38   2          }
-  39   1      }
-  40          
-  41          /*---------------------------------------
-  42          SEG Tube
-  43          ---------------------------------------*/
-  44          unsigned char code SEGNum[] = {
-  45              0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
-  46              0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71,
-  47              0x00}; // Make an Arry to save the one's complement of SEG
-  48          
-  49          unsigned char code SEGSign[] = {
-  50              0x7F, 0xBF
-  51          };
-  52          
-  53          /**
-  54           * @brief 数码管显示数字
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 2   
+  13          
+  14          #define DS1302_SECOND   0x80
+  15          #define DS1302_MINUTE   0x82
+  16          #define DS1302_HOUR     0x84
+  17          #define DS1302_DATE     0x86
+  18          #define DS1302_MONTH    0x88
+  19          #define DS1302_DAY      0x8A
+  20          #define DS1302_YEAR     0x8C
+  21          #define DS1302_WP       0x8E
+  22          // #include <NomalFunc.h>
+  23          
+  24          /*---------------------------------------
+  25          Delay
+  26          ---------------------------------------*/
+  27          
+  28          /**
+  29           * @brief 延时X毫秒
+  30           *
+  31           * @param X_ms 延迟的毫秒数
+  32           * @retval 无
+  33           */
+  34          void Delay(unsigned int X_ms) //@12.000MHz
+  35          {
+  36   1          unsigned char i, j;
+  37   1          while (X_ms--)
+  38   1          {
+  39   2              /* code */
+  40   2              i = 2;
+  41   2              j = 239;
+  42   2              do
+  43   2              {
+  44   3                  while (--j)
+  45   3                      ;
+  46   3              } while (--i);
+  47   2          }
+  48   1      }
+  49          
+  50          /*---------------------------------------
+  51          SEG Tube
+  52          ---------------------------------------*/
+  53          unsigned char code SEGNum[] = {
+  54              0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 2   
 
-  55           *
-  56           * @param Location 显示位置
-  57           * @param Number 显示的数字
-  58           * @retval 无
-  59           */
-  60          void SEG(unsigned char Location, unsigned char Number)
-  61          { // Use SEG Tube Show Setted Number
-  62   1          P1 = ~(0x01 << (8 - Location));
-  63   1          P0 = ~SEGNum[Number];
-  64   1          Delay(1);
-  65   1          P0 = 0xFF;
-  66   1      }
-  67          
-  68          /**
-  69           * @brief 数码管扫描函数，最大可在数码管中显示0~65535范围内的整数。
-  70           * 格式：右对齐
-  71           * 
-  72           * @param Data 显示的数据 范围：
-  73           * L_MODE与R_MODE：0~9999
-  74           * N_MODE:0~65535
-  75           * @param ScanMode 输出模式：
-  76           * 'L''l'：左侧数码管输出
-  77           * 'R''r'：右侧数码管输出
-  78           * 'N''n'：双侧数码管共同输出
-  79           */
-  80          void SEGScan(unsigned int Data, char ScanMode)
-  81          {
-  82   1          unsigned char TempData[8];
-  83   1          int count = 0;
-  84   1          switch (ScanMode)
-  85   1          {
-  86   2          case 'l':
-  87   2          case 'L':
-  88   2          {
-  89   3              TempData[0] = SEGNum[Data / 1000];
-  90   3              TempData[1] = SEGNum[(Data % 1000) / 100];
-  91   3              TempData[2] = SEGNum[((Data % 1000) % 100) / 10];
-  92   3              TempData[3] = SEGNum[((Data % 1000) % 100) % 10];
-  93   3              for (count = 0; count < 3 && TempData[count] == 0x3F; count++)
-  94   3              {
-  95   4                  TempData[count] = 0x00;
-  96   4              }
-  97   3              for (count = 1; count <= 4; count++)
-  98   3              {
-  99   4                  P1 = ~(0x01 << (8 - count));
- 100   4                  P0 = ~TempData[count - 1];
- 101   4                  Delay(1);
- 102   4                  P0 = 0xFF;
- 103   4              }
- 104   3              break;
- 105   3          }
- 106   2          case 'r':
- 107   2          case 'R':
- 108   2          {
- 109   3              TempData[4] = SEGNum[Data / 1000];
- 110   3              TempData[5] = SEGNum[(Data % 1000) / 100];
- 111   3              TempData[6] = SEGNum[((Data % 1000) % 100) / 10];
- 112   3              TempData[7] = SEGNum[((Data % 1000) % 100) % 10];
- 113   3              for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
- 114   3              {
- 115   4                  TempData[count] = 0x00;
- 116   4              }
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 3   
+  55              0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71,
+  56              0x00}; // Make an Arry to save the one's complement of SEG
+  57          
+  58          unsigned char code SEGSign[] = {
+  59              0x7F, 0xBF
+  60          };
+  61          
+  62          /**
+  63           * @brief 数码管显示数字
+  64           *
+  65           * @param Location 显示位置
+  66           * @param Number 显示的数字
+  67           * @retval 无
+  68           */
+  69          void SEG(unsigned char Location, unsigned char Number)
+  70          { // Use SEG Tube Show Setted Number
+  71   1          P1 = ~(0x01 << (8 - Location));
+  72   1          P0 = ~SEGNum[Number];
+  73   1          Delay(1);
+  74   1          P0 = 0xFF;
+  75   1      }
+  76          
+  77          /**
+  78           * @brief 数码管扫描函数，最大可在数码管中显示0~65535范围内的整数。
+  79           * 格式：右对齐
+  80           * 
+  81           * @param Data 显示的数据 范围：
+  82           * L_MODE与R_MODE：0~9999
+  83           * N_MODE:0~65535
+  84           * @param ScanMode 输出模式：
+  85           * 'L''l'：左侧数码管输出
+  86           * 'R''r'：右侧数码管输出
+  87           * 'N''n'：双侧数码管共同输出
+  88           */
+  89          void SEGScan(unsigned int Data, char ScanMode)
+  90          {
+  91   1          unsigned char TempData[8];
+  92   1          int count = 0;
+  93   1          switch (ScanMode)
+  94   1          {
+  95   2          case 'l':
+  96   2          case 'L':
+  97   2          {
+  98   3              TempData[0] = SEGNum[Data / 1000];
+  99   3              TempData[1] = SEGNum[(Data % 1000) / 100];
+ 100   3              TempData[2] = SEGNum[((Data % 1000) % 100) / 10];
+ 101   3              TempData[3] = SEGNum[((Data % 1000) % 100) % 10];
+ 102   3              for (count = 0; count < 3 && TempData[count] == 0x3F; count++)
+ 103   3              {
+ 104   4                  TempData[count] = 0x00;
+ 105   4              }
+ 106   3              for (count = 1; count <= 4; count++)
+ 107   3              {
+ 108   4                  P1 = ~(0x01 << (8 - count));
+ 109   4                  P0 = ~TempData[count - 1];
+ 110   4                  Delay(1);
+ 111   4                  P0 = 0xFF;
+ 112   4              }
+ 113   3              break;
+ 114   3          }
+ 115   2          case 'r':
+ 116   2          case 'R':
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 3   
 
- 117   3              for (count = 4; count <= 8; count++)
- 118   3              {
- 119   4                  P1 = ~(0x01 << (8 - count));
- 120   4                  P0 = ~TempData[count - 1];
- 121   4                  Delay(1);
- 122   4                  P0 = 0xFF;
- 123   4              }
- 124   3              break;
- 125   3          }
- 126   2          case 'n':
- 127   2          case 'N':
- 128   2          {
- 129   3              unsigned int Mode = 10;
- 130   3              for (count = 7; count >= 0; count--)
- 131   3              {
- 132   4                  TempData[count] = SEGNum[Data % Mode];
- 133   4                  Data = Data / 10;
- 134   4              }
- 135   3              for (count = 0; count < 4 && TempData[count] == 0x3F; count++)
- 136   3              {
- 137   4                  TempData[count] = 0x00;
- 138   4              }
- 139   3              for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
+ 117   2          {
+ 118   3              TempData[4] = SEGNum[Data / 1000];
+ 119   3              TempData[5] = SEGNum[(Data % 1000) / 100];
+ 120   3              TempData[6] = SEGNum[((Data % 1000) % 100) / 10];
+ 121   3              TempData[7] = SEGNum[((Data % 1000) % 100) % 10];
+ 122   3              for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
+ 123   3              {
+ 124   4                  TempData[count] = 0x00;
+ 125   4              }
+ 126   3              for (count = 4; count <= 8; count++)
+ 127   3              {
+ 128   4                  P1 = ~(0x01 << (8 - count));
+ 129   4                  P0 = ~TempData[count - 1];
+ 130   4                  Delay(1);
+ 131   4                  P0 = 0xFF;
+ 132   4              }
+ 133   3              break;
+ 134   3          }
+ 135   2          case 'n':
+ 136   2          case 'N':
+ 137   2          {
+ 138   3              unsigned int Mode = 10;
+ 139   3              for (count = 7; count >= 0; count--)
  140   3              {
- 141   4                  TempData[count] = 0x00;
- 142   4              }
- 143   3              for (count = 1; count <= 8; count++)
- 144   3              {
- 145   4                  P1 = ~(0x01 << (8 - count));
- 146   4                  P0 = ~TempData[count - 1];
- 147   4                  Delay(1);
- 148   4                  P0 = 0xFF;
- 149   4              }
- 150   3              break;
- 151   3          }
- 152   2          }
- 153   1      }
- 154          
- 155          /*---------------------------------------
- 156          LCD1602
- 157          ---------------------------------------*/
- 158          //引脚配置：
- 159          sbit LCD_RS = 0x90;
- 160          sbit LCD_RW = 0x91;
- 161          sbit LCD_EN = 0x92;
- 162          #define LCD_DataPort P0
+ 141   4                  TempData[count] = SEGNum[Data % Mode];
+ 142   4                  Data = Data / 10;
+ 143   4              }
+ 144   3              for (count = 0; count < 4 && TempData[count] == 0x3F; count++)
+ 145   3              {
+ 146   4                  TempData[count] = 0x00;
+ 147   4              }
+ 148   3              for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
+ 149   3              {
+ 150   4                  TempData[count] = 0x00;
+ 151   4              }
+ 152   3              for (count = 1; count <= 8; count++)
+ 153   3              {
+ 154   4                  P1 = ~(0x01 << (8 - count));
+ 155   4                  P0 = ~TempData[count - 1];
+ 156   4                  Delay(1);
+ 157   4                  P0 = 0xFF;
+ 158   4              }
+ 159   3              break;
+ 160   3          }
+ 161   2          }
+ 162   1      }
  163          
- 164          //函数定义：
- 165          /**
- 166           * @brief  LCD1602延时函数，12MHz调用可延时1ms
- 167           * @param  无
- 168           * @retval 无
- 169           */
- 170          void LCD_Delay()
- 171          {
- 172   1          unsigned char i, j;
- 173   1      
- 174   1          i = 2;
- 175   1          j = 239;
- 176   1          do
- 177   1          {
- 178   2              while (--j)
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 4   
+ 164          /*---------------------------------------
+ 165          LCD1602
+ 166          ---------------------------------------*/
+ 167          //引脚配置：
+ 168          sbit LCD_RS = 0x90;
+ 169          sbit LCD_RW = 0x91;
+ 170          sbit LCD_EN = 0x92;
+ 171          #define LCD_DataPort P0
+ 172          
+ 173          //函数定义：
+ 174          /**
+ 175           * @brief  LCD1602延时函数，12MHz调用可延时1ms
+ 176           * @param  无
+ 177           * @retval 无
+ 178           */
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 4   
 
- 179   2                  ;
- 180   2          } while (--i);
- 181   1      }
- 182          
- 183          /**
- 184           * @brief  LCD1602写命令
- 185           * @param  Command 要写入的命令
- 186           * @retval 无
- 187           */
- 188          void LCD_WriteCommand(unsigned char Command)
- 189          {
- 190   1          LCD_RS = 0;
- 191   1          LCD_RW = 0;
- 192   1          LCD_DataPort = Command;
- 193   1          LCD_EN = 1;
- 194   1          LCD_Delay();
- 195   1          LCD_EN = 0;
- 196   1          LCD_Delay();
- 197   1      }
- 198          
- 199          /**
- 200           * @brief  LCD1602写数据
- 201           * @param  Data 要写入的数据
- 202           * @retval 无
- 203           */
- 204          void LCD_WriteData(unsigned char Data)
- 205          {
- 206   1          LCD_RS = 1;
- 207   1          LCD_RW = 0;
- 208   1          LCD_DataPort = Data;
- 209   1          LCD_EN = 1;
- 210   1          LCD_Delay();
- 211   1          LCD_EN = 0;
- 212   1          LCD_Delay();
- 213   1      }
- 214          
- 215          /**
- 216           * @brief  LCD1602设置光标位置
- 217           * @param  Line 行位置，范围：1~2
- 218           * @param  Column 列位置，范围：1~16
- 219           * @retval 无
- 220           */
- 221          void LCD_SetCursor(unsigned char Line, unsigned char Column)
- 222          {
- 223   1          if (Line == 1)
- 224   1          {
- 225   2              LCD_WriteCommand(0x80 | (Column - 1));
- 226   2          }
- 227   1          else if (Line == 2)
- 228   1          {
- 229   2              LCD_WriteCommand(0x80 | (Column - 1 + 0x40));
- 230   2          }
- 231   1      }
- 232          
- 233          /**
- 234           * @brief  LCD1602初始化函数
- 235           * @param  无
- 236           * @retval 无
- 237           */
- 238          void LCD_Init()
- 239          {
- 240   1          LCD_WriteCommand(0x38); //八位数据接口，两行显示，5*7点阵
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 5   
+ 179          void LCD_Delay()
+ 180          {
+ 181   1          unsigned char i, j;
+ 182   1      
+ 183   1          i = 2;
+ 184   1          j = 239;
+ 185   1          do
+ 186   1          {
+ 187   2              while (--j)
+ 188   2                  ;
+ 189   2          } while (--i);
+ 190   1      }
+ 191          
+ 192          /**
+ 193           * @brief  LCD1602写命令
+ 194           * @param  Command 要写入的命令
+ 195           * @retval 无
+ 196           */
+ 197          void LCD_WriteCommand(unsigned char Command)
+ 198          {
+ 199   1          LCD_RS = 0;
+ 200   1          LCD_RW = 0;
+ 201   1          LCD_DataPort = Command;
+ 202   1          LCD_EN = 1;
+ 203   1          LCD_Delay();
+ 204   1          LCD_EN = 0;
+ 205   1          LCD_Delay();
+ 206   1      }
+ 207          
+ 208          /**
+ 209           * @brief  LCD1602写数据
+ 210           * @param  Data 要写入的数据
+ 211           * @retval 无
+ 212           */
+ 213          void LCD_WriteData(unsigned char Data)
+ 214          {
+ 215   1          LCD_RS = 1;
+ 216   1          LCD_RW = 0;
+ 217   1          LCD_DataPort = Data;
+ 218   1          LCD_EN = 1;
+ 219   1          LCD_Delay();
+ 220   1          LCD_EN = 0;
+ 221   1          LCD_Delay();
+ 222   1      }
+ 223          
+ 224          /**
+ 225           * @brief  LCD1602设置光标位置
+ 226           * @param  Line 行位置，范围：1~2
+ 227           * @param  Column 列位置，范围：1~16
+ 228           * @retval 无
+ 229           */
+ 230          void LCD_SetCursor(unsigned char Line, unsigned char Column)
+ 231          {
+ 232   1          if (Line == 1)
+ 233   1          {
+ 234   2              LCD_WriteCommand(0x80 | (Column - 1));
+ 235   2          }
+ 236   1          else if (Line == 2)
+ 237   1          {
+ 238   2              LCD_WriteCommand(0x80 | (Column - 1 + 0x40));
+ 239   2          }
+ 240   1      }
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 5   
 
- 241   1          LCD_WriteCommand(0x0c); //显示开，光标关，闪烁关
- 242   1          LCD_WriteCommand(0x06); //数据读写操作后，光标自动加一，画面不动
- 243   1          LCD_WriteCommand(0x01); //光标复位，清屏
- 244   1      }
- 245          
- 246          /**
- 247           * @brief  在LCD1602指定位置上显示一个字符
- 248           * @param  Line 行位置，范围：1~2
- 249           * @param  Column 列位置，范围：1~16
- 250           * @param  Char 要显示的字符
- 251           * @retval 无
- 252           */
- 253          void LCD_ShowChar(unsigned char Line, unsigned char Column, char Char)
- 254          {
- 255   1          LCD_SetCursor(Line, Column);
- 256   1          LCD_WriteData(Char);
- 257   1      }
- 258          
- 259          /**
- 260           * @brief  在LCD1602指定位置开始显示所给字符串
- 261           * @param  Line 起始行位置，范围：1~2
- 262           * @param  Column 起始列位置，范围：1~16
- 263           * @param  String 要显示的字符串
- 264           * @retval 无
- 265           */
- 266          void LCD_ShowString(unsigned char Line, unsigned char Column, char *String)
- 267          {
- 268   1          unsigned char i;
- 269   1          LCD_SetCursor(Line, Column);
- 270   1          for (i = 0; String[i] != '\0'; i++)
- 271   1          {
- 272   2              LCD_WriteData(String[i]);
- 273   2          }
- 274   1      }
- 275          
- 276          /**
- 277           * @brief  返回值=X的Y次方
- 278           */
- 279          int LCD_Pow(int X, int Y)
- 280          {
- 281   1          unsigned char i;
- 282   1          int Result = 1;
- 283   1          for (i = 0; i < Y; i++)
- 284   1          {
- 285   2              Result *= X;
- 286   2          }
- 287   1          return Result;
- 288   1      }
- 289          
- 290          /**
- 291           * @brief  在LCD1602指定位置开始显示所给数字
- 292           * @param  Line 起始行位置，范围：1~2
- 293           * @param  Column 起始列位置，范围：1~16
- 294           * @param  Number 要显示的数字，范围：0~65535
- 295           * @param  Length 要显示数字的长度，范围：1~5
- 296           * @retval 无
- 297           */
- 298          void LCD_ShowNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
- 299          {
- 300   1          unsigned char i;
- 301   1          LCD_SetCursor(Line, Column);
- 302   1          for (i = Length; i > 0; i--)
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 6   
+ 241          
+ 242          /**
+ 243           * @brief  LCD1602初始化函数
+ 244           * @param  无
+ 245           * @retval 无
+ 246           */
+ 247          void LCD_Init()
+ 248          {
+ 249   1          LCD_WriteCommand(0x38); //八位数据接口，两行显示，5*7点阵
+ 250   1          LCD_WriteCommand(0x0c); //显示开，光标关，闪烁关
+ 251   1          LCD_WriteCommand(0x06); //数据读写操作后，光标自动加一，画面不动
+ 252   1          LCD_WriteCommand(0x01); //光标复位，清屏
+ 253   1      }
+ 254          
+ 255          /**
+ 256           * @brief  在LCD1602指定位置上显示一个字符
+ 257           * @param  Line 行位置，范围：1~2
+ 258           * @param  Column 列位置，范围：1~16
+ 259           * @param  Char 要显示的字符
+ 260           * @retval 无
+ 261           */
+ 262          void LCD_ShowChar(unsigned char Line, unsigned char Column, char Char)
+ 263          {
+ 264   1          LCD_SetCursor(Line, Column);
+ 265   1          LCD_WriteData(Char);
+ 266   1      }
+ 267          
+ 268          /**
+ 269           * @brief  在LCD1602指定位置开始显示所给字符串
+ 270           * @param  Line 起始行位置，范围：1~2
+ 271           * @param  Column 起始列位置，范围：1~16
+ 272           * @param  String 要显示的字符串
+ 273           * @retval 无
+ 274           */
+ 275          void LCD_ShowString(unsigned char Line, unsigned char Column, char *String)
+ 276          {
+ 277   1          unsigned char i;
+ 278   1          LCD_SetCursor(Line, Column);
+ 279   1          for (i = 0; String[i] != '\0'; i++)
+ 280   1          {
+ 281   2              LCD_WriteData(String[i]);
+ 282   2          }
+ 283   1      }
+ 284          
+ 285          /**
+ 286           * @brief  返回值=X的Y次方
+ 287           */
+ 288          int LCD_Pow(int X, int Y)
+ 289          {
+ 290   1          unsigned char i;
+ 291   1          int Result = 1;
+ 292   1          for (i = 0; i < Y; i++)
+ 293   1          {
+ 294   2              Result *= X;
+ 295   2          }
+ 296   1          return Result;
+ 297   1      }
+ 298          
+ 299          /**
+ 300           * @brief  在LCD1602指定位置开始显示所给数字
+ 301           * @param  Line 起始行位置，范围：1~2
+ 302           * @param  Column 起始列位置，范围：1~16
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 6   
 
- 303   1          {
- 304   2              LCD_WriteData(Number / LCD_Pow(10, i - 1) % 10 + '0');
- 305   2          }
- 306   1      }
- 307          
- 308          /**
- 309           * @brief  在LCD1602指定位置开始以有符号十进制显示所给数字
- 310           * @param  Line 起始行位置，范围：1~2
- 311           * @param  Column 起始列位置，范围：1~16
- 312           * @param  Number 要显示的数字，范围：-32768~32767
- 313           * @param  Length 要显示数字的长度，范围：1~5
- 314           * @retval 无
- 315           */
- 316          void LCD_ShowSignedNum(unsigned char Line, unsigned char Column, int Number, unsigned char Length)
- 317          {
- 318   1          unsigned char i;
- 319   1          unsigned int Number1;
- 320   1          LCD_SetCursor(Line, Column);
- 321   1          if (Number >= 0)
- 322   1          {
- 323   2              LCD_WriteData('+');
- 324   2              Number1 = Number;
- 325   2          }
- 326   1          else
- 327   1          {
- 328   2              LCD_WriteData('-');
- 329   2              Number1 = -Number;
- 330   2          }
- 331   1          for (i = Length; i > 0; i--)
- 332   1          {
- 333   2              LCD_WriteData(Number1 / LCD_Pow(10, i - 1) % 10 + '0');
+ 303           * @param  Number 要显示的数字，范围：0~65535
+ 304           * @param  Length 要显示数字的长度，范围：1~5
+ 305           * @retval 无
+ 306           */
+ 307          void LCD_ShowNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
+ 308          {
+ 309   1          unsigned char i;
+ 310   1          LCD_SetCursor(Line, Column);
+ 311   1          for (i = Length; i > 0; i--)
+ 312   1          {
+ 313   2              LCD_WriteData(Number / LCD_Pow(10, i - 1) % 10 + '0');
+ 314   2          }
+ 315   1      }
+ 316          
+ 317          /**
+ 318           * @brief  在LCD1602指定位置开始以有符号十进制显示所给数字
+ 319           * @param  Line 起始行位置，范围：1~2
+ 320           * @param  Column 起始列位置，范围：1~16
+ 321           * @param  Number 要显示的数字，范围：-32768~32767
+ 322           * @param  Length 要显示数字的长度，范围：1~5
+ 323           * @retval 无
+ 324           */
+ 325          void LCD_ShowSignedNum(unsigned char Line, unsigned char Column, int Number, unsigned char Length)
+ 326          {
+ 327   1          unsigned char i;
+ 328   1          unsigned int Number1;
+ 329   1          LCD_SetCursor(Line, Column);
+ 330   1          if (Number >= 0)
+ 331   1          {
+ 332   2              LCD_WriteData('+');
+ 333   2              Number1 = Number;
  334   2          }
- 335   1      }
- 336          
- 337          /**
- 338           * @brief  在LCD1602指定位置开始以十六进制显示所给数字
- 339           * @param  Line 起始行位置，范围：1~2
- 340           * @param  Column 起始列位置，范围：1~16
- 341           * @param  Number 要显示的数字，范围：0~0xFFFF
- 342           * @param  Length 要显示数字的长度，范围：1~4
- 343           * @retval 无
- 344           */
- 345          void LCD_ShowHexNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
- 346          {
- 347   1          unsigned char i, SingleNumber;
- 348   1          LCD_SetCursor(Line, Column);
- 349   1          for (i = Length; i > 0; i--)
- 350   1          {
- 351   2              SingleNumber = Number / LCD_Pow(16, i - 1) % 16;
- 352   2              if (SingleNumber < 10)
- 353   2              {
- 354   3                  LCD_WriteData(SingleNumber + '0');
- 355   3              }
- 356   2              else
- 357   2              {
- 358   3                  LCD_WriteData(SingleNumber - 10 + 'A');
- 359   3              }
- 360   2          }
- 361   1      }
- 362          
- 363          /**
- 364           * @brief  在LCD1602指定位置开始以二进制显示所给数字
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 7   
+ 335   1          else
+ 336   1          {
+ 337   2              LCD_WriteData('-');
+ 338   2              Number1 = -Number;
+ 339   2          }
+ 340   1          for (i = Length; i > 0; i--)
+ 341   1          {
+ 342   2              LCD_WriteData(Number1 / LCD_Pow(10, i - 1) % 10 + '0');
+ 343   2          }
+ 344   1      }
+ 345          
+ 346          /**
+ 347           * @brief  在LCD1602指定位置开始以十六进制显示所给数字
+ 348           * @param  Line 起始行位置，范围：1~2
+ 349           * @param  Column 起始列位置，范围：1~16
+ 350           * @param  Number 要显示的数字，范围：0~0xFFFF
+ 351           * @param  Length 要显示数字的长度，范围：1~4
+ 352           * @retval 无
+ 353           */
+ 354          void LCD_ShowHexNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
+ 355          {
+ 356   1          unsigned char i, SingleNumber;
+ 357   1          LCD_SetCursor(Line, Column);
+ 358   1          for (i = Length; i > 0; i--)
+ 359   1          {
+ 360   2              SingleNumber = Number / LCD_Pow(16, i - 1) % 16;
+ 361   2              if (SingleNumber < 10)
+ 362   2              {
+ 363   3                  LCD_WriteData(SingleNumber + '0');
+ 364   3              }
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 7   
 
- 365           * @param  Line 起始行位置，范围：1~2
- 366           * @param  Column 起始列位置，范围：1~16
- 367           * @param  Number 要显示的数字，范围：0~1111 1111 1111 1111
- 368           * @param  Length 要显示数字的长度，范围：1~16
- 369           * @retval 无
- 370           */
- 371          void LCD_ShowBinNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
- 372          {
- 373   1          unsigned char i;
- 374   1          LCD_SetCursor(Line, Column);
- 375   1          for (i = Length; i > 0; i--)
- 376   1          {
- 377   2              LCD_WriteData(Number / LCD_Pow(2, i - 1) % 2 + '0');
- 378   2          }
- 379   1      }
- 380          
- 381          /*---------------------------------------
- 382          Matrix Key
- 383          ---------------------------------------*/
- 384          
- 385          /**
- 386           * @brief 检测矩阵键盘按键
- 387           * 
- 388           * @return unsigned char 
- 389           * @retval KeyNum 键盘号
- 390           */
- 391          unsigned char MatrixKey()
- 392          {
- 393   1          unsigned char KeyNum = 0;
- 394   1      
- 395   1          P2 = 0xFF;
- 396   1          P2_3 = 0;
- 397   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 1;}
- 398   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 5;}
- 399   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 9;}
- 400   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 13;}
- 401   1      
- 402   1          P2 = 0xFF;
- 403   1          P2_2 = 0;
- 404   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 2;}
- 405   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 6;}
- 406   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 10;}
- 407   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 14;}
- 408   1      
- 409   1          P2 = 0xFF;
- 410   1          P2_1 = 0;
- 411   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 3;}
- 412   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 7;}
- 413   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 11;}
- 414   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 15;}
- 415   1      
- 416   1          P2 = 0xFF;
- 417   1          P2_0 = 0;
- 418   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 4;}
- 419   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 8;}
- 420   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 12;}
- 421   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 16;}
- 422   1      
- 423   1          return KeyNum;
- 424   1      }
- 425          
- 426          /*---------------------------------------
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 8   
+ 365   2              else
+ 366   2              {
+ 367   3                  LCD_WriteData(SingleNumber - 10 + 'A');
+ 368   3              }
+ 369   2          }
+ 370   1      }
+ 371          
+ 372          /**
+ 373           * @brief  在LCD1602指定位置开始以二进制显示所给数字
+ 374           * @param  Line 起始行位置，范围：1~2
+ 375           * @param  Column 起始列位置，范围：1~16
+ 376           * @param  Number 要显示的数字，范围：0~1111 1111 1111 1111
+ 377           * @param  Length 要显示数字的长度，范围：1~16
+ 378           * @retval 无
+ 379           */
+ 380          void LCD_ShowBinNum(unsigned char Line, unsigned char Column, unsigned int Number, unsigned char Length)
+ 381          {
+ 382   1          unsigned char i;
+ 383   1          LCD_SetCursor(Line, Column);
+ 384   1          for (i = Length; i > 0; i--)
+ 385   1          {
+ 386   2              LCD_WriteData(Number / LCD_Pow(2, i - 1) % 2 + '0');
+ 387   2          }
+ 388   1      }
+ 389          
+ 390          /*---------------------------------------
+ 391          Matrix Key
+ 392          ---------------------------------------*/
+ 393          
+ 394          /**
+ 395           * @brief 检测矩阵键盘按键
+ 396           * 
+ 397           * @return unsigned char 
+ 398           * @retval KeyNum 键盘号
+ 399           */
+ 400          unsigned char MatrixKey()
+ 401          {
+ 402   1          unsigned char KeyNum = 0;
+ 403   1      
+ 404   1          P2 = 0xFF;
+ 405   1          P2_3 = 0;
+ 406   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 1;}
+ 407   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 5;}
+ 408   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 9;}
+ 409   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 13;}
+ 410   1      
+ 411   1          P2 = 0xFF;
+ 412   1          P2_2 = 0;
+ 413   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 2;}
+ 414   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 6;}
+ 415   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 10;}
+ 416   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 14;}
+ 417   1      
+ 418   1          P2 = 0xFF;
+ 419   1          P2_1 = 0;
+ 420   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 3;}
+ 421   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 7;}
+ 422   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 11;}
+ 423   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 15;}
+ 424   1      
+ 425   1          P2 = 0xFF;
+ 426   1          P2_0 = 0;
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 8   
 
- 427          Key
- 428          ---------------------------------------*/
- 429          
- 430          /**
- 431           * @brief 获取独立按键键盘码
- 432           * @retval 键盘号 范围：0~4
- 433           * @return unsigned char 
- 434           */
- 435          unsigned char Key()
- 436          {
- 437   1          unsigned char KeyNum = 0;
- 438   1      
- 439   1          if(P2_3 == 0)   {Delay(20); while(P2_3 == 0); Delay(20); KeyNum = 1;}
- 440   1          if(P2_2 == 0)   {Delay(20); while(P2_2 == 0); Delay(20); KeyNum = 2;}
- 441   1          if(P2_1 == 0)   {Delay(20); while(P2_1 == 0); Delay(20); KeyNum = 3;}
- 442   1          if(P2_0 == 0)   {Delay(20); while(P2_0 == 0); Delay(20); KeyNum = 4;}
- 443   1      
- 444   1          return KeyNum;
- 445   1      }
- 446          
- 447          /*---------------------------------------
- 448          Timer0 Init
- 449          ---------------------------------------*/
- 450          /**
- 451           * @brief 定时器器0函数初始化函数，12MHz
- 452           * @retval 无
- 453           */
- 454          void Timer0_Init(void)    //1毫秒@12.000MHz
- 455          {
- 456   1        TMOD &= 0xF0;   //设置定时器模式
- 457   1        TMOD |= 0x01;   //设置定时器模式
- 458   1        TL0 = 0x18;   //设置定时初始值
- 459   1        TH0 = 0xFC;   //设置定时初始值
- 460   1        TF0 = 0;    //清除TF0标志
- 461   1        TR0 = 1;    //定时器0开始计时
- 462   1          ET0 = 1;        //设置中断标志
- 463   1          EA = 1;
- 464   1          PT0 = 0;
- 465   1      }
- 466          /*
- 467          1s计时器中断函数模板
- 468          
- 469          void Timer0_Routine() interrupt 1
- 470          {
- 471              static unsigned int T0_Count = 0;
- 472              TL0 = 0x18;
- 473              TH0 = 0xFC;
- 474              T0_Count++;
- 475              if (T0_Count >= 1000)
- 476              {
- 477                  T0_Count = 0;
- 478                  P0_0 = ~P0_0;
- 479              }
- 480          }
- 481          */
- 482          
- 483          /*---------------------------------------
- 484          Serial Ports
- 485          ---------------------------------------*/
- 486          
- 487          /**
- 488           * @brief 初始化串口(4800bps)
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 9   
+ 427   1          if(P2_7 == 0)   {Delay(15); while(P2_7 == 0); Delay(15); KeyNum = 4;}
+ 428   1          if(P2_6 == 0)   {Delay(15); while(P2_6 == 0); Delay(15); KeyNum = 8;}
+ 429   1          if(P2_5 == 0)   {Delay(15); while(P2_5 == 0); Delay(15); KeyNum = 12;}
+ 430   1          if(P2_4 == 0)   {Delay(15); while(P2_4 == 0); Delay(15); KeyNum = 16;}
+ 431   1      
+ 432   1          return KeyNum;
+ 433   1      }
+ 434          
+ 435          /*---------------------------------------
+ 436          Key
+ 437          ---------------------------------------*/
+ 438          
+ 439          /**
+ 440           * @brief 获取独立按键键盘码
+ 441           * @retval 键盘号 范围：0~4
+ 442           * @return unsigned char 
+ 443           */
+ 444          unsigned char Key()
+ 445          {
+ 446   1          unsigned char KeyNum = 0;
+ 447   1      
+ 448   1          if(P2_3 == 0)   {Delay(20); while(P2_3 == 0); Delay(20); KeyNum = 1;}
+ 449   1          if(P2_2 == 0)   {Delay(20); while(P2_2 == 0); Delay(20); KeyNum = 2;}
+ 450   1          if(P2_1 == 0)   {Delay(20); while(P2_1 == 0); Delay(20); KeyNum = 3;}
+ 451   1          if(P2_0 == 0)   {Delay(20); while(P2_0 == 0); Delay(20); KeyNum = 4;}
+ 452   1      
+ 453   1          return KeyNum;
+ 454   1      }
+ 455          
+ 456          /*---------------------------------------
+ 457          Timer0 Init
+ 458          ---------------------------------------*/
+ 459          /**
+ 460           * @brief 定时器器0函数初始化函数，12MHz
+ 461           * @retval 无
+ 462           */
+ 463          void Timer0_Init(void)    //1毫秒@12.000MHz
+ 464          {
+ 465   1        TMOD &= 0xF0;   //设置定时器模式
+ 466   1        TMOD |= 0x01;   //设置定时器模式
+ 467   1        TL0 = 0x18;   //设置定时初始值
+ 468   1        TH0 = 0xFC;   //设置定时初始值
+ 469   1        TF0 = 0;    //清除TF0标志
+ 470   1        TR0 = 1;    //定时器0开始计时
+ 471   1          ET0 = 1;        //设置中断标志
+ 472   1          EA = 1;
+ 473   1          PT0 = 0;
+ 474   1      }
+ 475          /*
+ 476          1s计时器中断函数模板
+ 477          
+ 478          void Timer0_Routine() interrupt 1
+ 479          {
+ 480              static unsigned int T0_Count = 0;
+ 481              TL0 = 0x18;
+ 482              TH0 = 0xFC;
+ 483              T0_Count++;
+ 484              if (T0_Count >= 1000)
+ 485              {
+ 486                  T0_Count = 0;
+ 487                  P0_0 = ~P0_0;
+ 488              }
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 9   
 
- 489           * 
- 490           */
+ 489          }
+ 490          */
  491          
- 492          void Uart_Init(void)    //4800bps@12.000MHz
- 493          {
- 494   1        PCON |= 0x80;   //使能波特率倍速位SMOD
- 495   1        SCON = 0x50;    //8位数据,可变波特率
- 496   1        TMOD &= 0x0F;   //设置定时器模式
- 497   1        TMOD |= 0x20;   //设置定时器模式
- 498   1        TL1 = 0xF3;   //设置定时初始值
- 499   1        TH1 = 0xF3;   //设置定时重载值
- 500   1        ET1 = 0;    //禁止定时器1中断
- 501   1        TR1 = 1;    //定时器1开始计时
- 502   1          EA = 1;         //中断设置
- 503   1          ES = 1;
- 504   1      }
- 505          
- 506          // /**
- 507          //  * @brief 初始化串口(可接收)
- 508          //  * 
- 509          //  * @param MODE 重载时标志参数
- 510          //  */
- 511          // void Uart_Init(unsigned int MODE)
- 512          // {
- 513          //     PCON |= 0x80;    //使能波特率倍速位SMOD
- 514          //  SCON = 0x50;    //8位数据,可变波特率
- 515          //  TMOD &= 0x0F;   //设置定时器模式
- 516          //  TMOD |= 0x20;   //设置定时器模式
- 517          //  TL1 = 0xF3;   //设置定时初始值
- 518          //  TH1 = 0xF3;   //设置定时重载值
- 519          //  ET1 = 0;    //禁止定时器1中断
- 520          //  TR1 = 1;    //定时器1开始计时
- 521          //     EA = 1;
- 522          //     ES = 1;
- 523          // }
- 524          
- 525          /**
- 526           * @brief 向电脑发送数据
- 527           * 
- 528           * @param Byte 所发送的1Byte数据
- 529           * @retval 无
- 530           */
- 531          void Uart_SendByte(unsigned char Byte)
- 532          {
- 533   1          SBUF = Byte;
- 534   1          while (TI == 0);
- 535   1          TI = 0;     //TI软件复位
- 536   1      }
- 537          
- 538          /*串口控制LED样例
- 539          void UART_Routine() interrupt 4
- 540          {
- 541              if(RI == 1)
- 542              {
- 543                  P0 = ~SBUF;
- 544                  Uart_SendByte(SBUF);
- 545                  RI = 0;         //RI软件复位
- 546              }
- 547          }
- 548          */
+ 492          /*---------------------------------------
+ 493          Serial Ports
+ 494          ---------------------------------------*/
+ 495          
+ 496          /**
+ 497           * @brief 初始化串口(4800bps)
+ 498           * 
+ 499           */
+ 500          
+ 501          void Uart_Init(void)    //4800bps@12.000MHz
+ 502          {
+ 503   1        PCON |= 0x80;   //使能波特率倍速位SMOD
+ 504   1        SCON = 0x50;    //8位数据,可变波特率
+ 505   1        TMOD &= 0x0F;   //设置定时器模式
+ 506   1        TMOD |= 0x20;   //设置定时器模式
+ 507   1        TL1 = 0xF3;   //设置定时初始值
+ 508   1        TH1 = 0xF3;   //设置定时重载值
+ 509   1        ET1 = 0;    //禁止定时器1中断
+ 510   1        TR1 = 1;    //定时器1开始计时
+ 511   1          EA = 1;         //中断设置
+ 512   1          ES = 1;
+ 513   1      }
+ 514          
+ 515          // /**
+ 516          //  * @brief 初始化串口(可接收)
+ 517          //  * 
+ 518          //  * @param MODE 重载时标志参数
+ 519          //  */
+ 520          // void Uart_Init(unsigned int MODE)
+ 521          // {
+ 522          //     PCON |= 0x80;    //使能波特率倍速位SMOD
+ 523          //  SCON = 0x50;    //8位数据,可变波特率
+ 524          //  TMOD &= 0x0F;   //设置定时器模式
+ 525          //  TMOD |= 0x20;   //设置定时器模式
+ 526          //  TL1 = 0xF3;   //设置定时初始值
+ 527          //  TH1 = 0xF3;   //设置定时重载值
+ 528          //  ET1 = 0;    //禁止定时器1中断
+ 529          //  TR1 = 1;    //定时器1开始计时
+ 530          //     EA = 1;
+ 531          //     ES = 1;
+ 532          // }
+ 533          
+ 534          /**
+ 535           * @brief 向电脑发送数据
+ 536           * 
+ 537           * @param Byte 所发送的1Byte数据
+ 538           * @retval 无
+ 539           */
+ 540          void Uart_SendByte(unsigned char Byte)
+ 541          {
+ 542   1          SBUF = Byte;
+ 543   1          while (TI == 0);
+ 544   1          TI = 0;     //TI软件复位
+ 545   1      }
+ 546          
+ 547          /*串口控制LED样例
+ 548          void UART_Routine() interrupt 4
+ 549          {
+ 550              if(RI == 1)
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 10  
 
+ 551              {
+ 552                  P0 = ~SBUF;
+ 553                  Uart_SendByte(SBUF);
+ 554                  RI = 0;         //RI软件复位
+ 555              }
+ 556          }
+ 557          */
+ 558          
+ 559          /*---------------------------------------
+ 560          DS1302
+ 561          ---------------------------------------*/
+ 562          sbit DS1302_SCLK = P3 ^ 4;
+ 563          sbit DS1302_IO = P3 ^ 5;
+ 564          sbit DS1302_CE = P3 ^ 6;
+ 565          
+ 566          unsigned char DS1302_Time[] = {22, 1, 18, 15, 29, 15, 3};
+ 567          
+ 568          /**
+ 569           * @brief DS1302初始化函数
+ 570           * 
+ 571           */
+ 572          void DS1302_Init()
+ 573          {
+ 574   1          DS1302_CE = 0;
+ 575   1          DS1302_SCLK = 0;
+ 576   1      }
+ 577          
+ 578          /**
+ 579           * @brief 十进制转BCD码函数
+ 580           * 
+ 581           * @param Dec 需要转换的十进制数
+ 582           * @return unsigned char 
+ 583           * @retval BCD码
+ 584           */
+ 585          unsigned char DS1302_toBCD(unsigned char Dec)
+ 586          {
+ 587   1          return Dec / 10 * 16 + Dec % 10;
+ 588   1      }
+ 589          
+ 590          /**
+ 591           * @brief BCD转十进制函数
+ 592           * 
+ 593           * @param Hex 需要转换的BCD码
+ 594           * @return unsigned char 
+ 595           * @retval 十进制数
+ 596           */
+ 597          unsigned char DS1302_toDec(unsigned char Hex)
+ 598          {
+ 599   1          return Hex / 16 * 10 + Hex % 16;
+ 600   1      }
+ 601          
+ 602          /**
+ 603           * @brief 向DS1302写入数据
+ 604           * 
+ 605           * @param Command 写入指令
+ 606           * @param Data 写入的数据
+ 607           * @retval 无
+ 608           */
+ 609          void DS1302_WriteByte(unsigned char Command, unsigned char Data)
+ 610          {
+ 611   1          unsigned char i;
+ 612   1          DS1302_CE = 1;
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 11  
 
-C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/18/2022 15:13:40 PAGE 10  
+ 613   1      
+ 614   1          for (i = 0; i < 8; i++) //写入指令
+ 615   1          {
+ 616   2              DS1302_IO = Command & (0x01 << i);
+ 617   2              DS1302_SCLK = 1;
+ 618   2              DS1302_SCLK = 0;
+ 619   2          }
+ 620   1      
+ 621   1          for (i = 0; i < 8; i++) //写入数据
+ 622   1          {
+ 623   2              DS1302_IO = Data & (0x01 << i);
+ 624   2              DS1302_SCLK = 1;
+ 625   2              DS1302_SCLK = 0;
+ 626   2          }
+ 627   1      
+ 628   1          DS1302_CE = 0;
+ 629   1      }
+ 630          
+ 631          /**
+ 632           * @brief 从DS1302读入数据
+ 633           * 
+ 634           * @param Command 读出命令
+ 635           * @return unsigned char 
+ 636           * @retval 无
+ 637           */
+ 638          unsigned char DS1302_ReadByte(unsigned char Command)
+ 639          {
+ 640   1          unsigned char i, Data = 0x00;
+ 641   1          Command |= 0x01;    //将设置的命令转为读取命令
+ 642   1          DS1302_CE = 1;
+ 643   1      
+ 644   1          for (i = 0; i < 8; i++) //写入指令
+ 645   1          {
+ 646   2              DS1302_IO = Command & (0x01 << i);
+ 647   2              DS1302_SCLK = 0;
+ 648   2              DS1302_SCLK = 1;
+ 649   2          }
+ 650   1      
+ 651   1          for (i = 0; i < 8; i++)
+ 652   1          {
+ 653   2              DS1302_SCLK = 1;
+ 654   2              DS1302_SCLK = 0;
+ 655   2              if (DS1302_IO)
+ 656   2              {
+ 657   3                  Data |= 0x01 << i;
+ 658   3              }
+ 659   2          }
+ 660   1          DS1302_CE = 0;
+ 661   1          return Data;
+ 662   1      }
+ 663          
+ 664          /**
+ 665           * @brief 设置时间函数
+ 666           * 
+ 667           */
+ 668          void DS1302_SetTime()
+ 669          {
+ 670   1          DS1302_WriteByte(DS1302_WP, 0x00);
+ 671   1          DS1302_WriteByte(DS1302_YEAR, DS1302_toBCD(DS1302_Time[0]));
+ 672   1          DS1302_WriteByte(DS1302_MONTH, DS1302_toBCD(DS1302_Time[1]));
+ 673   1          DS1302_WriteByte(DS1302_DATE, DS1302_toBCD(DS1302_Time[2]));
+ 674   1          DS1302_WriteByte(DS1302_HOUR, DS1302_toBCD(DS1302_Time[3]));
+C51 COMPILER V9.60.0.0   BASICALFUNC                                                       01/20/2022 15:26:08 PAGE 12  
+
+ 675   1          DS1302_WriteByte(DS1302_MINUTE, DS1302_toBCD(DS1302_Time[4]));
+ 676   1          DS1302_WriteByte(DS1302_SECOND, DS1302_toBCD(DS1302_Time[5]));
+ 677   1          DS1302_WriteByte(DS1302_DATE, DS1302_toBCD(DS1302_Time[6]));
+ 678   1          DS1302_WriteByte(DS1302_WP, 0x80);
+ 679   1      }
+ 680          
+ 681          /**
+ 682           * @brief 读取时间函数
+ 683           * 
+ 684           */
+ 685          void DS1302_ReadTime()
+ 686          {
+ 687   1          DS1302_Time[0] = DS1302_toDec(DS1302_ReadByte(DS1302_YEAR));
+ 688   1          DS1302_Time[1] = DS1302_toDec(DS1302_ReadByte(DS1302_MONTH));
+ 689   1          DS1302_Time[2] = DS1302_toDec(DS1302_ReadByte(DS1302_DATE));
+ 690   1          DS1302_Time[3] = DS1302_toDec(DS1302_ReadByte(DS1302_HOUR));
+ 691   1          DS1302_Time[4] = DS1302_toDec(DS1302_ReadByte(DS1302_MINUTE));
+ 692   1          DS1302_Time[5] = DS1302_toDec(DS1302_ReadByte(DS1302_SECOND));
+ 693   1          DS1302_Time[6] = DS1302_toDec(DS1302_ReadByte(DS1302_DAY));
+ 694   1      }
+ 695          
+ 696          /**
+ 697           * @brief 某年某月的天数
+ 698           * 
+ 699           * @param Year 
+ 700           * @param Month 
+ 701           * @return unsigned char 
+ 702           */
+ 703          unsigned char DS1302_MonthTable[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+ 704          unsigned char DS1302_DayOf(unsigned char Year, unsigned char Month)
+ 705          {
+ 706   1          unsigned char year = Year + 2000;
+ 707   1          if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+ 708   1          {
+ 709   2              return Month == 2 ? 29 : DS1302_MonthTable[Month - 1];
+ 710   2          }
+ 711   1          return DS1302_MonthTable[Month - 1];
+ 712   1      }
+
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1623    ----
+   CODE SIZE        =   2068    ----
    CONSTANT SIZE    =     19    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----      41
+   DATA SIZE        =     19      41
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
