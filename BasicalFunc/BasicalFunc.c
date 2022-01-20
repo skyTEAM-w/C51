@@ -692,3 +692,22 @@ void DS1302_ReadTime()
     DS1302_Time[5] = DS1302_toDec(DS1302_ReadByte(DS1302_SECOND));
     DS1302_Time[6] = DS1302_toDec(DS1302_ReadByte(DS1302_DAY));
 }
+
+/**
+ * @brief 某年某月的天数
+ * 
+ * @param Year 
+ * @param Month 
+ * @return unsigned char 
+ */
+
+unsigned char DS1302_MonthTable[] = {31, 28, 31, 30, 51, 30, 31, 31, 30, 31, 30, 31};
+unsigned char DS1302_DayOf(unsigned char Year, unsigned char Month)
+{
+    unsigned char year = Year + 2000;
+    if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+    {
+        return Month == 2 ? 29 : DS1302_MonthTable[Month - 1];
+    }
+    return DS1302_MonthTable[Month - 1];
+}
