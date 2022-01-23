@@ -1,6 +1,6 @@
-# C51
+# 51单片机
 
-This is a project created to learn C51.
+This is a project created to learn 51.
 
 ~~就不放洋屁了~~
 
