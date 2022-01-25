@@ -1,0 +1,6 @@
+".\Objects\Music.obj",
+".\Objects\Timer0Init.obj",
+".\Objects\Delay.obj" 
+TO ".\Objects\Music" 
+PRINT(".\Listings\Music.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 

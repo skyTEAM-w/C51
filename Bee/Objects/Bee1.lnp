@@ -1,0 +1,5 @@
+".\Objects\main1.obj",
+".\Objects\BasicalFunc.obj" 
+TO ".\Objects\Bee1" 
+PRINT(".\Listings\Bee1.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 

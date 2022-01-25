@@ -1,0 +1,171 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    01/25/2022  16:12:34  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\PROGRAM FILES\KEIL\C51\BIN\BL51.EXE .\Objects\Music.obj, .\Objects\Timer0Init.obj, .\Objects\Delay.obj TO .\Objects\M
+>> usic PRINT (.\Listings\Music.m51) RAMSIZE (256) DISABLEWARNING (16)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\Music.obj (MUSIC)
+  .\Objects\Timer0Init.obj (TIMER0INIT)
+  .\Objects\Delay.obj (DELAY)
+  D:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\PROGRAM FILES\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\Objects\Music (MUSIC)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     004CH     UNIT         ?DT?MUSIC
+            IDATA   0054H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0008H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     008CH     UNIT         ?C_C51STARTUP
+            CODE    009AH     004EH     UNIT         ?C_INITSEG
+            CODE    00E8H     0034H     UNIT         ?PR?TIMER0_ROUTINE?MUSIC
+            CODE    011CH     0031H     UNIT         ?PR?MAIN?MUSIC
+            CODE    014DH     002DH     UNIT         ?CO?MUSIC
+            CODE    017AH     0017H     UNIT         ?PR?TIMER0_INIT?TIMER0INIT
+            CODE    0191H     0015H     UNIT         ?PR?_DELAY?DELAY
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\Music (MUSIC)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MUSIC
+  +--> ?C_INITSEG
+
+?PR?MAIN?MUSIC
+  +--> ?PR?TIMER0_INIT?TIMER0INIT
+  +--> ?CO?MUSIC
+  +--> ?PR?_DELAY?DELAY
+
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/25/2022  16:12:34  PAGE 2
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\Music (MUSIC)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MUSIC
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:00E8H         PUBLIC        Timer0_Routine
+  D:00B0H         PUBLIC        P3
+  C:014DH         PUBLIC        Music
+  B:00B0H.7       PUBLIC        Buzzer
+  C:011CH         PUBLIC        main
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  D:0008H         PUBLIC        f
+  D:0009H         PUBLIC        i
+  D:000AH         PUBLIC        FreqTable
+  -------         PROC          MAIN
+  C:011CH         LINE#         114
+  C:011CH         LINE#         115
+  C:011CH         LINE#         116
+  C:011FH         LINE#         117
+  C:011FH         LINE#         118
+  C:011FH         LINE#         119
+  C:0129H         LINE#         120
+  C:0129H         LINE#         121
+  C:012BH         LINE#         122
+  C:012DH         LINE#         123
+  C:013AH         LINE#         124
+  C:013CH         LINE#         125
+  C:013EH         LINE#         126
+  C:0145H         LINE#         127
+  C:0147H         LINE#         128
+  C:0149H         LINE#         130
+  C:0149H         LINE#         131
+  C:014BH         LINE#         132
+  C:014BH         LINE#         133
+  C:014BH         LINE#         134
+  -------         ENDPROC       MAIN
+  -------         PROC          TIMER0_ROUTINE
+  C:00E8H         LINE#         139
+  C:00F3H         LINE#         141
+  C:0101H         LINE#         142
+  C:0101H         LINE#         143
+  C:010EH         LINE#         144
+  C:0111H         LINE#         145
+  C:0113H         LINE#         146
+  C:0113H         LINE#         147
+  -------         ENDPROC       TIMER0_ROUTINE
+  -------         ENDMOD        MUSIC
+
+  -------         MODULE        TIMER0INIT
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  B:00A8H.7       PUBLIC        EA
+  C:017AH         PUBLIC        Timer0_Init
+  D:0089H         PUBLIC        TMOD
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/25/2022  16:12:34  PAGE 3
+
+
+  B:00A8H.1       PUBLIC        ET0
+  B:0088H.5       PUBLIC        TF0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  B:00B8H.1       PUBLIC        PT0
+  B:0088H.4       PUBLIC        TR0
+  -------         PROC          TIMER0_INIT
+  C:017AH         LINE#         7
+  C:017AH         LINE#         8
+  C:017AH         LINE#         9
+  C:017DH         LINE#         10
+  C:0180H         LINE#         11
+  C:0183H         LINE#         12
+  C:0186H         LINE#         13
+  C:0188H         LINE#         14
+  C:018AH         LINE#         15
+  C:018CH         LINE#         16
+  C:018EH         LINE#         17
+  C:0190H         LINE#         18
+  -------         ENDPROC       TIMER0_INIT
+  -------         ENDMOD        TIMER0INIT
+
+  -------         MODULE        DELAY
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:0191H         PUBLIC        _Delay
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        X_ms
+  -------         DO            
+  D:0005H         SYMBOL        i
+  D:0004H         SYMBOL        j
+  -------         ENDDO         
+  C:0191H         LINE#         1
+  C:0191H         LINE#         2
+  C:0191H         LINE#         4
+  C:019BH         LINE#         5
+  C:019BH         LINE#         7
+  C:019DH         LINE#         8
+  C:019FH         LINE#         10
+  C:019FH         LINE#         11
+  C:01A1H         LINE#         12
+  C:01A3H         LINE#         13
+  C:01A5H         LINE#         14
+  -------         ENDPROC       _DELAY
+  -------         ENDMOD        DELAY
+
+Program Size: data=85.0 xdata=0 code=414
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)
