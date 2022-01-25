@@ -45,7 +45,7 @@ void SEGScan(unsigned int Data, char ScanMode)
     unsigned char TempData[8];
     int count = 0;
     switch (ScanMode)
-    {R_MODE
+    {
     case 'l':
     case 'L':
     {

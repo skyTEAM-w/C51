@@ -51,5 +51,8 @@ extern void DS1302_SetTime();
 extern void DS1302_ReadTime();
 extern unsigned char DS1302_DayOf(unsigned char Year, unsigned char Month);
 
+/*Buzzer*/
+extern void Buzzer_Time(unsigned int _ms);
+
 
 #endif
