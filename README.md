@@ -10,7 +10,11 @@ This is a project created to learn 51.
 
 ## BasicalFunc
 
-此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，随时更新。
+此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，2022-1-29之后停止更新。
+
+函数的具体操作，在`README.md`中有详细的展示。
+
+*注意：`BasicalFunc.h`与`BasicalFunc.c`文件在2022-1-29之后不再作为主要函数库使用，仅作为集成参考，具体使用以各类函数库为准*
 
 目前已将各方法分到各同名文件中，方便查找，使用方法与前面一样。
 
@@ -26,6 +30,8 @@ This is a project created to learn 51.
 6. Timer0 定时器0初始化函数以及其定时中断模板
 7. SerialPorts 串口通信初始化与传输函数
 8. DS1302 时钟相关函数(部分)
+9. Buzzer 蜂鸣器相关函数
+10. AT24C02 存储相关函数
 
 ### 使用
 
@@ -592,5 +598,227 @@ unsigned char DS1302_DayOf(unsigned char Year, unsigned char Month)
         return Month == 2 ? 29 : DS1302_MonthTable[Month - 1];
     }
     return DS1302_MonthTable[Month - 1];
+}
+```
+
+#### Buzzer
+
+此类函数用于控制蜂鸣器发声
+
+**可用的外部函数：**
+
+```c
+void Buzzer_Time(unsigned int _ms);
+```
+
+**内部实现：**
+
+```c
+sbit Buzzer = P3 ^ 7;
+
+/**
+ * @brief 蜂鸣器延时函数
+ * 
+ */
+void Buzzer_Delay500us()		//@12.000MHz
+{
+	unsigned char i;
+
+	_nop_();
+	i = 247;
+	while (--i);
+}
+
+
+/**
+ * @brief 蜂鸣器响X毫秒
+ * 
+ * @param _ms 毫秒数
+ */
+void Buzzer_Time(unsigned int _ms)
+{
+    unsigned char i = 0;
+    for (i = 0; i < _ms; i++)
+    {
+        Buzzer = !Buzzer;
+        Buzzer_Delay500us();
+    }
+}
+```
+
+#### AT24C02 存储相关函数
+
+用于数据在AT24C02上的读写。
+
+**I2C总线部分：**
+
+定义：
+
+```c
+void I2C_Start();
+void I2C_Stop();
+void I2C_SendByte(unsigned char Byte);
+unsigned char I2C_ReceiveByte();
+void I2C_SendAck(unsigned char AckBit);
+unsigned char I2C_ReceiveAck();
+
+```
+
+根据时序图，进行各函数的编写。
+
+实现：
+
+```c
+sbit I2C_SCL = P3 ^ 2;
+sbit I2C_SDA = P3 ^ 3;
+
+/**
+ * @brief  I2C开始
+ * @param  无
+ * @retval 无
+ */
+void I2C_Start(void)
+{
+    I2C_SDA = 1;
+    I2C_SCL = 1;
+    I2C_SDA = 0;
+    I2C_SCL = 0;
+}
+
+/**
+ * @brief  I2C停止
+ * @param  无
+ * @retval 无
+ */
+void I2C_Stop(void)
+{
+    I2C_SDA = 0;
+    I2C_SCL = 1;
+    I2C_SDA = 1;
+}
+
+/**
+ * @brief  I2C发送一个字节
+ * @param  Byte 要发送的字节
+ * @retval 无
+ */
+void I2C_SendByte(unsigned char Byte)
+{
+    unsigned char i;
+    for (i = 0; i < 8; i++)
+    {
+        I2C_SDA = Byte & (0x80 >> i);
+        I2C_SCL = 1;
+        I2C_SCL = 0;
+    }
+}
+
+/**
+ * @brief  I2C接收一个字节
+ * @param  无
+ * @retval 接收到的一个字节数据
+ */
+unsigned char I2C_ReceiveByte(void)
+{
+    unsigned char i, Byte = 0x00;
+    I2C_SDA = 1;
+    for (i = 0; i < 8; i++)
+    {
+        I2C_SCL = 1;
+        if (I2C_SDA)
+        {
+            Byte |= (0x80 >> i);
+        }
+        I2C_SCL = 0;
+    }
+    return Byte;
+}
+
+/**
+ * @brief  I2C发送应答
+ * @param  AckBit 应答位，0为应答，1为非应答
+ * @retval 无
+ */
+void I2C_SendAck(unsigned char AckBit)
+{
+    I2C_SDA = AckBit;
+    I2C_SCL = 1;
+    I2C_SCL = 0;
+}
+
+/**
+ * @brief  I2C接收应答位
+ * @param  无
+ * @retval 接收到的应答位，0为应答，1为非应答
+ */
+unsigned char I2C_ReceiveAck(void)
+{
+    unsigned char AckBit;
+    I2C_SDA = 1;
+    I2C_SCL = 1;
+    AckBit = I2C_SDA;
+    I2C_SCL = 0;
+    return AckBit;
+}
+
+```
+
+**AT24C02部分：**
+
+此部分相当于对I2C部分的继承，可用C++进行实现。
+
+定义：
+
+```c
+void AT24C02_WriteByte(unsigned char WordAddress, unsigned char Data);
+unsigned char AT24C02_ReadByte(unsigned char WordAddress);
+```
+
+根据I2C与时序图，编排成读写函数。
+
+实现：
+
+```c
+#define AT24C02_ADDRESS 0xA0
+
+/**
+ * @brief AT24C02写入一个字节
+ * 
+ * @param WordAddress 地址
+ * @param Data 数据
+ */
+void AT24C02_WriteByte(unsigned char WordAddress, unsigned char Data)
+{
+    I2C_Start();
+    I2C_SendByte(AT24C02_ADDRESS);
+    I2C_ReceiveAck();
+    I2C_SendByte(WordAddress);
+    I2C_ReceiveAck();
+    I2C_SendByte(Data);
+    I2C_ReceiveAck();
+    I2C_Stop();
+}
+
+/**
+ * @brief AT24C02读取一个字节
+ * 
+ * @param WordAddress 地址
+ * @return unsigned char 所读取的数据
+ */
+unsigned char AT24C02_ReadByte(unsigned char WordAddress)
+{
+    unsigned char Data;
+    I2C_Start();
+    I2C_SendByte(AT24C02_ADDRESS);
+    I2C_ReceiveAck();
+    I2C_SendByte(WordAddress);
+    I2C_ReceiveAck();
+    I2C_Start();
+    I2C_SendByte(AT24C02_ADDRESS | 0x01);
+    I2C_ReceiveAck();
+    Data = I2C_ReceiveByte();
+    I2C_SendAck(1);
+    I2C_Stop();
+    return Data;
 }
 ```
