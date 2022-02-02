@@ -4,14 +4,29 @@
 /*---------------------------------------
 SEG Tube
 ---------------------------------------*/
-unsigned char code SEGNum[] = {
+
+// Make an Arry to save the one's complement of SEG
+unsigned char code SEG_Table[] = {
     0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
     0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71,
-    0x00}; // Make an Arry to save the one's complement of SEG
+    0x00, 0x40}; 
 
 unsigned char code SEGSign[] = {
-    0x7F, 0xBF
-};
+    0x7F, 0xBF};
+
+//数码管缓存区表
+unsigned char SEG_Buf[9] = {0, 16, 16, 16, 16, 16, 16, 16, 16};
+
+/**
+ * @brief 缓存区设置函数
+ * 
+ * @param Location 显示位置
+ * @param Number 数字
+ */
+void SEG_SetBuf(unsigned char Location, unsigned char Number)
+{
+    SEG_Buf[Location] = Number;
+}
 
 /**
  * @brief 数码管显示数字
@@ -22,16 +37,16 @@ unsigned char code SEGSign[] = {
  */
 void SEG(unsigned char Location, unsigned char Number)
 { // Use SEG Tube Show Setted Number
-    P1 = ~(0x01 << (8 - Location));
-    P0 = ~SEGNum[Number];
-    Delay(1);
     P0 = 0xFF;
+    P1 = ~(0x01 << (8 - Location));
+    P0 = ~SEG_Table[Number];
+    
 }
 
 /**
  * @brief 数码管扫描函数，最大可在数码管中显示0~65535范围内的整数。
  * 格式：右对齐
- * 
+ *
  * @param Data 显示的数据 范围：
  * L_MODE与R_MODE：0~9999
  * N_MODE:0~65535
@@ -49,10 +64,10 @@ void SEGScan(unsigned int Data, char ScanMode)
     case 'l':
     case 'L':
     {
-        TempData[0] = SEGNum[Data / 1000];
-        TempData[1] = SEGNum[(Data % 1000) / 100];
-        TempData[2] = SEGNum[((Data % 1000) % 100) / 10];
-        TempData[3] = SEGNum[((Data % 1000) % 100) % 10];
+        TempData[0] = SEG_Table[Data / 1000];
+        TempData[1] = SEG_Table[(Data % 1000) / 100];
+        TempData[2] = SEG_Table[((Data % 1000) % 100) / 10];
+        TempData[3] = SEG_Table[((Data % 1000) % 100) % 10];
         for (count = 0; count < 3 && TempData[count] == 0x3F; count++)
         {
             TempData[count] = 0x00;
@@ -69,10 +84,10 @@ void SEGScan(unsigned int Data, char ScanMode)
     case 'r':
     case 'R':
     {
-        TempData[4] = SEGNum[Data / 1000];
-        TempData[5] = SEGNum[(Data % 1000) / 100];
-        TempData[6] = SEGNum[((Data % 1000) % 100) / 10];
-        TempData[7] = SEGNum[((Data % 1000) % 100) % 10];
+        TempData[4] = SEG_Table[Data / 1000];
+        TempData[5] = SEG_Table[(Data % 1000) / 100];
+        TempData[6] = SEG_Table[((Data % 1000) % 100) / 10];
+        TempData[7] = SEG_Table[((Data % 1000) % 100) % 10];
         for (count = 4; count < 7 && TempData[count] == 0x3F; count++)
         {
             TempData[count] = 0x00;
@@ -92,7 +107,7 @@ void SEGScan(unsigned int Data, char ScanMode)
         unsigned int Mode = 10;
         for (count = 7; count >= 0; count--)
         {
-            TempData[count] = SEGNum[Data % Mode];
+            TempData[count] = SEG_Table[Data % Mode];
             Data = Data / 10;
         }
         for (count = 0; count < 4 && TempData[count] == 0x3F; count++)
@@ -113,4 +128,17 @@ void SEGScan(unsigned int Data, char ScanMode)
         break;
     }
     }
+}
+
+/**
+ * @brief 数码管定时器扫描函数
+ * 
+ */
+void SEG_Loop()
+{
+    static unsigned char i = 1;
+    SEG(i, SEG_Buf[i]);
+    i++;
+    if (i >= 9)
+        i = 1;
 }

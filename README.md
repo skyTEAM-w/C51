@@ -8,6 +8,14 @@ This is a project created to learn 51.
 
 *仓库内所有代码均不能直接放入普中科技的开发板中，请使用者自行对照开发板原理图进行更改！*
 
+## 更新
+
+### 2022-2-2
+
+新的定时器扫描按键与数码管函数。
+
+详见：[BasicalFunc->SEG](#seg)与[BasicalFunc->Key](#key).
+
 ## BasicalFunc
 
 此文件夹中`BasicalFunc.h`与`BasicalFunc.c`最为重要，包含C51学习过程中个人构建的大多数函数模板，2022-1-29之后停止更新。
@@ -78,24 +86,48 @@ void Delay(unsigned int X_ms) //@12.000MHz
 
 分为数码管数字显示数组与显示函数两部分。
 
+显示函数分定时器扫描与`Delay`扫描两种。
+
 **数组定义：**
 
 ```c
-unsigned char code SEGNum[] = {
+// Make an Arry to save the one's complement of SEG
+unsigned char code SEG_Table[] = {
     0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07,
     0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71,
-    0x00}; // Make an Arry to save the one's complement of SEG
+    0x00, 0x40}; 
+
+//未使用数组
+unsigned char code SEGSign[] = {
+    0x7F, 0xBF};
+
+//数码管缓存区表
+unsigned char SEG_Buf[9] = {0, 16, 16, 16, 16, 16, 16, 16, 16};
+
 ```
 
 **函数声明：**
 
 ```c
-extern void SEG(unsigned char Location, unsigned char Number); //SEG View (Location, Number)
+void SEG(unsigned char Location, unsigned char Number); //SEG View (Location, Number)
+void SEG_Loop();
+void SEG_SetBuf(unsigned char Location, unsigned char Number);
 ```
 
-**函数实现：**
+**定时器扫描函数实现：**
 
 ```c
+/**
+ * @brief 缓存区设置函数
+ * 
+ * @param Location 显示位置
+ * @param Number 数字
+ */
+void SEG_SetBuf(unsigned char Location, unsigned char Number)
+{
+    SEG_Buf[Location] = Number;
+}
+
 /**
  * @brief 数码管显示数字
  *
@@ -105,16 +137,29 @@ extern void SEG(unsigned char Location, unsigned char Number); //SEG View (Locat
  */
 void SEG(unsigned char Location, unsigned char Number)
 { // Use SEG Tube Show Setted Number
-    P1 = ~(0x01 << (8 - Location));
-    P0 = ~SEGNum[Number];
-    Delay(1);
     P0 = 0xFF;
+    P1 = ~(0x01 << (8 - Location));
+    P0 = ~SEG_Table[Number];
+    
+}
+
+/**
+ * @brief 数码管定时器扫描函数
+ * 
+ */
+void SEG_Loop()
+{
+    static unsigned char i = 1;
+    SEG(i, SEG_Buf[i]);
+    i++;
+    if (i >= 9)
+        i = 1;
 }
 ```
 
 数码管的具体显示，需要通过扫描实现。
 
-**数码管扫描函数**
+**`Delay`扫描函数**
 
 全新的数码管扫描函数，可以实现0~65535范围数据在数码管的显示。
 
@@ -284,21 +329,71 @@ unsigned char MatrixKey()
 
 ```c
 extern unsigned char Key();
+extern void Key_Loop();
 ```
 
 **实现：**
 
 ```c
+unsigned char Key_Number;
+
+/**
+ * @brief 获取独立按键键盘码
+ * @retval 键盘号 范围：0~4
+ * @return unsigned char 
+ */
+
 unsigned char Key()
+{
+    unsigned char Temp;
+    Temp = Key_Number;
+    Key_Number = 0;
+    return Temp;
+}
+
+/**
+ * @brief 按键状态查询函数
+ * 
+ * @return unsigned char 键码
+ */
+unsigned char Key_Getstate()
 {
     unsigned char KeyNum = 0;
 
-    if(P2_3 == 0)   {Delay(20); while(P2_3 == 0); Delay(20); KeyNum = 1;}
-    if(P2_2 == 0)   {Delay(20); while(P2_2 == 0); Delay(20); KeyNum = 2;}
-    if(P2_1 == 0)   {Delay(20); while(P2_1 == 0); Delay(20); KeyNum = 3;}
-    if(P2_0 == 0)   {Delay(20); while(P2_0 == 0); Delay(20); KeyNum = 4;}
+    if(P2_3 == 0)   {KeyNum = 1;}
+    if(P2_2 == 0)   {KeyNum = 2;}
+    if(P2_1 == 0)   {KeyNum = 3;}
+    if(P2_0 == 0)   {KeyNum = 4;}
 
     return KeyNum;
+}
+
+/**
+ * @brief 按键循环函数
+ * 用于定时器扫描按键
+ * 
+ */
+void Key_Loop()
+{
+    static unsigned char NowState, LastState;
+    LastState = NowState;
+    NowState = Key_Getstate();
+    if (LastState == 1 && NowState == 0)
+    {
+        Key_Number = 1;
+    }
+    if (LastState == 2 && NowState == 0)
+    {
+        Key_Number = 2;
+    }
+    if (LastState == 3 && NowState == 0)
+    {
+        Key_Number = 3;
+    }
+    if (LastState == 4 && NowState == 0)
+    {
+        Key_Number = 4;
+    }
 }
 ```
 
@@ -820,5 +915,45 @@ unsigned char AT24C02_ReadByte(unsigned char WordAddress)
     I2C_SendAck(1);
     I2C_Stop();
     return Data;
+}
+```
+
+## 关于定时器扫描数码管与按键
+
+**优势：** 使用定时器扫描，可以实现更加复杂的任务，不用占用MCU资源。
+
+### 方式
+
+定义好循环函数，在定时器内进行执行，可以自动设定循环时间。
+
+**例如：**
+
+```c
+void Timer0_Routine() interrupt 1
+{
+    static unsigned int T0_Count1 = 0, T0_Count2 = 0, T0_Count3 = 0;
+    TL0 = 0x18;
+    TH0 = 0xFC;
+    T0_Count1++;
+
+    if (T0_Count1 >= 20)
+    {
+        T0_Count1 = 0;
+        Key_Loop();
+    }
+
+    T0_Count2++;
+    if (T0_Count2 >= 2)
+    {
+        T0_Count2 = 0;
+        SEG_Loop();
+    }
+
+    T0_Count3++;
+    if (T0_Count3 >= 10)
+    {
+        T0_Count3 = 0;
+        Sec_Loop();
+    }
 }
 ```
