@@ -1,0 +1,123 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              02/02/2022 14:55:59 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Program files\Keil\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Li
+                    -stings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "Timer0Init.h"
+   3          #include "Key.h"
+   4          #include "SEG.h"
+   5          #include "AT24C02.h"
+   6          #include "Delay.h"
+   7          
+   8          unsigned char KeyNum;
+   9          unsigned char Min, Sec, MinSec;
+  10          unsigned char RunFlag;
+  11          
+  12          void main()
+  13          {
+  14   1          Timer0_Init();
+  15   1      
+  16   1          while (1)
+  17   1          {
+  18   2              KeyNum = Key();
+  19   2              if (KeyNum == 1)
+  20   2              {
+  21   3                  RunFlag = !RunFlag;
+  22   3              }
+  23   2              if(KeyNum == 2)
+  24   2              {
+  25   3                  Min = Sec = MinSec = 0;
+  26   3              }
+  27   2              if(KeyNum == 3)
+  28   2              {
+  29   3                  AT24C02_WriteByte(0, Min);
+  30   3                  Delay(5);
+  31   3                  AT24C02_WriteByte(1, Sec);
+  32   3                  Delay(5);
+  33   3                  AT24C02_WriteByte(2, MinSec);
+  34   3                  Delay(5);
+  35   3              }
+  36   2              if(KeyNum == 4)
+  37   2              {
+  38   3                  Min = AT24C02_ReadByte(0);
+  39   3                  Sec = AT24C02_ReadByte(1);
+  40   3                  MinSec = AT24C02_ReadByte(2);
+  41   3              }
+  42   2              SEG_SetBuf(1, Min / 10);
+  43   2              SEG_SetBuf(2, Min % 10);
+  44   2              SEG_SetBuf(3, 17);
+  45   2              SEG_SetBuf(4, Sec / 10);
+  46   2              SEG_SetBuf(5, Sec % 10);
+  47   2              SEG_SetBuf(6, 17);
+  48   2              SEG_SetBuf(7, MinSec / 10);
+  49   2              SEG_SetBuf(8, MinSec % 10);
+  50   2          }
+  51   1      }
+  52          
+  53          void Sec_Loop()
+  54          {
+C51 COMPILER V9.60.0.0   MAIN                                                              02/02/2022 14:55:59 PAGE 2   
+
+  55   1          if (RunFlag == 1)
+  56   1          {
+  57   2              MinSec++;
+  58   2              if (MinSec >= 100)
+  59   2              {
+  60   3                  MinSec = 0;
+  61   3                  Sec++;
+  62   3                  if (Sec >= 60)
+  63   3                  {
+  64   4                      Sec = 0;
+  65   4                      Min++;
+  66   4                  }
+  67   3              }
+  68   2          }
+  69   1      }
+  70          
+  71          void Timer0_Routine() interrupt 1
+  72          {
+  73   1          static unsigned int T0_Count1 = 0, T0_Count2 = 0, T0_Count3 = 0;
+  74   1          TL0 = 0x18;
+  75   1          TH0 = 0xFC;
+  76   1          T0_Count1++;
+  77   1      
+  78   1          if (T0_Count1 >= 20)
+  79   1          {
+  80   2              T0_Count1 = 0;
+  81   2              Key_Loop();
+  82   2          }
+  83   1      
+  84   1          T0_Count2++;
+  85   1          if (T0_Count2 >= 2)
+  86   1          {
+  87   2              T0_Count2 = 0;
+  88   2              SEG_Loop();
+  89   2          }
+  90   1      
+  91   1          T0_Count3++;
+  92   1          if (T0_Count3 >= 10)
+  93   1          {
+  94   2              T0_Count3 = 0;
+  95   2              Sec_Loop();
+  96   2          }
+  97   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    384    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
