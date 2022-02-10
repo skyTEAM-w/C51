@@ -10,6 +10,12 @@ This is a project created to learn 51.
 
 ## 更新
 
+### 2022-2-10
+
+DS18B20温度传感器，实现温度的读取。
+
+详见：[BasicalFunc->DS18B20](#ds18b20-温度传感相关函数).
+
 ### 2022-2-2
 
 新的定时器扫描按键与数码管函数。
@@ -40,6 +46,7 @@ This is a project created to learn 51.
 8. DS1302 时钟相关函数(部分)
 9. Buzzer 蜂鸣器相关函数
 10. AT24C02 存储相关函数
+11. DS18B20 温度传感相关函数
 
 ### 使用
 
@@ -918,6 +925,194 @@ unsigned char AT24C02_ReadByte(unsigned char WordAddress)
 }
 ```
 
+#### DS18B20 温度传感相关函数
+
+**单总线 1-Wire 部分：**
+
+根据时序要求编写基本的初始化与接收发送函数
+
+定义：
+
+```c
+unsigned char OneWire_Init();
+void OneWire_SendBit(unsigned char Bit);
+unsigned char OneWire_ReceiveBit();
+void OneWire_SendByte(unsigned char Byte);
+unsigned char OneWire_ReceiveByte();
+```
+
+实现：
+
+```c
+sbit OneWire_DQ = P3 ^ 7;
+
+/**
+ * @brief 单总线初始化函数
+ * 
+ * @return unsigned char 
+ * @retval 0为初始化成功，1为失败
+ */
+unsigned char OneWire_Init()
+{
+    unsigned char i;
+    unsigned char AckBit;
+    OneWire_DQ = 1;
+    OneWire_DQ = 0;
+
+    //Delay500us
+	i = 247;
+	while (--i);
+
+    OneWire_DQ = 1;
+
+    //Delay70us
+    i = 32;
+	while (--i);
+
+    AckBit = OneWire_DQ;
+
+    //Delay500us
+	i = 247;
+	while (--i);
+
+    return AckBit;
+}
+
+/**
+ * @brief 单总线发送一位
+ * 
+ * @param Bit 发送的位
+ */
+void OneWire_SendBit(unsigned char Bit)
+{
+    unsigned char i = 0;
+    OneWire_DQ = 0;
+
+    //Delay10us
+    i = 4;
+	while (--i);
+
+    OneWire_DQ = Bit;
+
+    //Delay50us
+    i = 24;
+	while (--i);
+
+    OneWire_DQ = 1;
+}
+
+/**
+ * @brief 单总线接收一位
+ * 
+ * @return unsigned char 接收的一位 
+ */
+unsigned char OneWire_ReceiveBit()
+{
+    unsigned char Bit;
+    unsigned char i = 0;
+
+    OneWire_DQ = 0;
+    i = 2; // Delay5us
+    while (--i);
+    OneWire_DQ = 1;
+    i = 2; // Delay5us
+    while (--i);
+    Bit = OneWire_DQ;
+    i = 22; //Delay50us
+	while (--i);
+
+    return Bit;
+}
+
+/**
+ * @brief 单总线发送一个字节
+ * 
+ * @param Byte 发送的一个字节
+ */
+void OneWire_SendByte(unsigned char Byte)
+{
+    unsigned char i;
+    for(i = 0; i < 8; i++)
+    {
+        OneWire_SendBit(Byte & (0x01 << i));
+    }
+}
+
+/**
+ * @brief 单总线接收一个字节
+ * 
+ * @return unsigned char 接收的一个字节
+ */
+unsigned char OneWire_ReceiveByte()
+{
+    unsigned char Byte = 0x00;
+    unsigned char i;
+
+    for(i = 0; i < 8; i++)
+    {
+        if(OneWire_ReceiveBit())
+        {
+            Byte |= 0x01 << i;
+        }
+    }
+
+    return Byte;
+}
+```
+
+**DS18B20部分：**
+
+根据时序进行组装。
+
+定义：
+
+```c
+void DS18B20_ConvertT();
+float DS18B20_ReadT();
+```
+
+实现：
+
+```c
+#define DS18B20_SKIP_ROM        0xCC
+#define DS18B20_CONVERT_T       0x44
+#define DS18B20_READ_SCRATCHPAD 0xBE
+
+/**
+ * @brief DS18B20温度变换函数
+ * 
+ */
+void DS18B20_ConvertT()
+{
+    OneWire_Init();
+    OneWire_SendByte(DS18B20_SKIP_ROM);
+    OneWire_SendByte(DS18B20_CONVERT_T);
+}
+
+/**
+ * @brief DS18B20温度读取函数
+ * 
+ * @return float 温度
+ */
+float DS18B20_ReadT()
+{
+    unsigned char TLSB, TMSB;
+    int Temp;
+    float T;
+    OneWire_Init();
+    OneWire_SendByte(DS18B20_SKIP_ROM);
+    OneWire_SendByte(DS18B20_READ_SCRATCHPAD);
+    TLSB = OneWire_ReceiveByte();
+    TMSB = OneWire_ReceiveByte();
+
+    Temp = (TMSB << 8) | TLSB;
+
+    T = Temp / 16.0;
+
+    return T;
+}
+```
+
 ## 关于定时器扫描数码管与按键
 
 **优势：** 使用定时器扫描，可以实现更加复杂的任务，不用占用MCU资源。
@@ -957,3 +1152,8 @@ void Timer0_Routine() interrupt 1
     }
 }
 ```
+
+## 关于单总线与DS18B20温度传感器
+
+用于DS18B20温度传感器与STC89C52的通信。
+

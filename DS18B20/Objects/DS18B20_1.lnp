@@ -1,0 +1,8 @@
+".\Objects\main1.obj",
+".\Objects\LCD1602.obj",
+".\Objects\Delay.obj",
+".\Objects\DS18B20.obj",
+".\Objects\OneWire.obj" 
+TO ".\Objects\DS18B20_1" 
+PRINT(".\Listings\DS18B20_1.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 
