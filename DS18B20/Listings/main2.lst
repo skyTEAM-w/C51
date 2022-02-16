@@ -1,0 +1,152 @@
+C51 COMPILER V9.60.0.0   MAIN2                                                             02/16/2022 13:46:00 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN2
+OBJECT MODULE PLACED IN .\Objects\main2.obj
+COMPILER INVOKED BY: D:\Program files\Keil\C51\BIN\C51.EXE main2.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\L
+                    -istings\main2.lst) TABS(2) OBJECT(.\Objects\main2.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "LCD1602.h"
+   3          #include "DS18B20.h"
+   4          #include "AT24C02.h"
+   5          #include "Delay.h"
+   6          #include "Key.h"
+   7          #include "Timer0Init.h"
+   8          
+   9          float T, TShow;
+  10          char TLow, THigh;
+  11          unsigned char KeyNum;
+  12          
+  13          void main()
+  14          {
+  15   1          DS18B20_ConvertT();
+  16   1          TLow = AT24C02_ReadByte(1);
+  17   1          THigh = AT24C02_ReadByte(0);
+  18   1          if (THigh > 125 || TLow < -55 || THigh <= TLow)
+  19   1          {
+  20   2              THigh = 20;
+  21   2              TLow = 15;
+  22   2          }
+  23   1      
+  24   1          Timer0_Init();
+  25   1          LCD_Init();
+  26   1          LCD_ShowString(1, 1, "T:");
+  27   1          LCD_ShowString(2, 1, "TH:");
+  28   1          LCD_ShowString(2, 9, "TL:");
+  29   1          LCD_ShowSignedNum(2, 4, THigh, 3);
+  30   1          LCD_ShowSignedNum(2, 12, TLow, 3);
+  31   1          while (1)
+  32   1          {
+  33   2              KeyNum = Key();
+  34   2              
+  35   2              //温度读取与显示
+  36   2              DS18B20_ConvertT();
+  37   2              T = DS18B20_ReadT();
+  38   2              if (T < 0)
+  39   2              {
+  40   3                  LCD_ShowChar(1, 3, '-');
+  41   3                  TShow = -T;
+  42   3              }
+  43   2              else
+  44   2              {
+  45   3                  LCD_ShowChar(1, 3, '+');
+  46   3                  TShow = T;
+  47   3              }
+  48   2              LCD_ShowNum(1, 4, TShow, 3);
+  49   2              LCD_ShowChar(1, 7, '.');
+  50   2              LCD_ShowNum(1, 8, (unsigned long)(TShow * 100) % 100, 2);
+  51   2      
+  52   2              //阈值判断与显示
+  53   2              if (KeyNum)
+  54   2              {
+C51 COMPILER V9.60.0.0   MAIN2                                                             02/16/2022 13:46:00 PAGE 2   
+
+  55   3                  if (KeyNum == 1)
+  56   3                  {
+  57   4                      THigh++;
+  58   4                      if (THigh > 125)
+  59   4                      {
+  60   5                          THigh = 125;
+  61   5                      }
+  62   4                  }
+  63   3                  if (KeyNum == 2)
+  64   3                  {
+  65   4                      THigh--;
+  66   4                      if (THigh <= TLow)
+  67   4                      {
+  68   5                          THigh++;
+  69   5                      }
+  70   4                  }
+  71   3                  if (KeyNum == 3)
+  72   3                  {
+  73   4                      TLow++;
+  74   4                      if (TLow >= THigh)
+  75   4                      {
+  76   5                          TLow--;
+  77   5                      }
+  78   4                  }
+  79   3                  if (KeyNum == 4)
+  80   3                  {
+  81   4                      TLow--;
+  82   4                      if (TLow < -55)
+  83   4                      {
+  84   5                          TLow == -55;
+*** WARNING C275 IN LINE 84 OF main2.c: expression with possibly no effect
+  85   5                      }
+  86   4                  }
+  87   3      
+  88   3                  LCD_ShowSignedNum(2, 4, THigh, 3);
+  89   3                  LCD_ShowSignedNum(2, 12, TLow, 3);
+  90   3      
+  91   3                  AT24C02_WriteByte(0, THigh);
+  92   3                  Delay(5);
+  93   3                  AT24C02_WriteByte(1, TLow);
+  94   3              }
+  95   2      
+  96   2              if (T > THigh)
+  97   2              {
+  98   3                  LCD_ShowString(1, 13, "OV:H");
+  99   3              }
+ 100   2              else if (T < TLow)
+ 101   2              {
+ 102   3                  LCD_ShowString(1, 13, "OV:L");
+ 103   3              }
+ 104   2              else
+ 105   2              {
+ 106   3                  LCD_ShowString(1, 13, "    ");
+ 107   3              }
+ 108   2          }
+ 109   1      }
+ 110          
+ 111          void Timer0_Routine() interrupt 1
+ 112          {
+ 113   1          static unsigned int T0_Count1 = 0;
+ 114   1          TL0 = 0x18;
+ 115   1          TH0 = 0xFC;
+C51 COMPILER V9.60.0.0   MAIN2                                                             02/16/2022 13:46:00 PAGE 3   
+
+ 116   1          T0_Count1++;
+ 117   1      
+ 118   1          if (T0_Count1 >= 20)
+ 119   1          {
+ 120   2              T0_Count1 = 0;
+ 121   2              Key_Loop();
+ 122   2          }
+ 123   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    625    ----
+   CONSTANT SIZE    =     26    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

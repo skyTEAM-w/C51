@@ -12,6 +12,7 @@ unsigned char OneWire_Init()
 {
     unsigned char i;
     unsigned char AckBit;
+    EA = 0;
     OneWire_DQ = 1;
     OneWire_DQ = 0;
 
@@ -31,6 +32,8 @@ unsigned char OneWire_Init()
 	i = 247;
 	while (--i);
 
+    EA = 1;
+
     return AckBit;
 }
 
@@ -43,6 +46,7 @@ void OneWire_SendBit(unsigned char Bit)
 {
     unsigned char i = 0;
     OneWire_DQ = 0;
+    EA = 0;
 
     //Delay10us
     i = 4;
@@ -55,6 +59,8 @@ void OneWire_SendBit(unsigned char Bit)
 	while (--i);
 
     OneWire_DQ = 1;
+
+    EA = 1;
 }
 
 /**
@@ -66,6 +72,7 @@ unsigned char OneWire_ReceiveBit()
 {
     unsigned char Bit;
     unsigned char i = 0;
+    EA = 0;
 
     OneWire_DQ = 0;
     i = 2; // Delay5us
@@ -76,6 +83,8 @@ unsigned char OneWire_ReceiveBit()
     Bit = OneWire_DQ;
     i = 22; //Delay50us
 	while (--i);
+
+    EA = 1;
 
     return Bit;
 }

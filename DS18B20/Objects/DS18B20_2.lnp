@@ -1,0 +1,12 @@
+".\Objects\main2.obj",
+".\Objects\Delay.obj",
+".\Objects\DS18B20.obj",
+".\Objects\LCD1602.obj",
+".\Objects\OneWire.obj",
+".\Objects\AT24C02.obj",
+".\Objects\I2C.obj",
+".\Objects\Key.obj",
+".\Objects\Timer0Init.obj" 
+TO ".\Objects\DS18B20_2" 
+PRINT(".\Listings\DS18B20_2.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 
