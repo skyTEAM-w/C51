@@ -10,6 +10,16 @@ This is a project created to learn 51.
 
 ## 更新
 
+### 2022-4-30
+
+PWM，LED与电机调速。
+
+代码与`BasicalFunc`方案独立，单独存在于`PWM`文件夹内，包含定时器PWM与软件PWM。
+
+详见：[PWM脉冲宽度调制](#pwm脉冲宽度调制)
+
+*此后更新方案将不再适用于人人卓越单片机开发板*
+
 ### 2022-2-10
 
 DS18B20温度传感器，实现温度的读取。
@@ -1163,3 +1173,58 @@ void Timer0_Routine() interrupt 1
 
 用于DS18B20温度传感器与STC89C52的通信。
 
+## PWM脉冲宽度调制
+
+
+**软件调制：**
+
+```c
+for (Time = 0; Time < 100; Time++)
+        {
+            for (i = 0; i < 20; i++)
+            {
+                LED = 0;
+                Delay(Time);
+                LED = 1;
+                Delay(100 - Time);
+            }
+        }
+        for (Time = 100; Time > 0; Time--)
+        {
+            for (i = 0; i < 20; i++)
+            {
+                LED = 0;
+                Delay(Time);
+                LED = 1;
+                Delay(100 - Time);
+            }
+        }
+```
+
+**硬件调制：**
+
+```c
+/*
+定时器中断PWM
+@12MHz 100us
+*/
+void Timer0_Routine() interrupt 1
+{
+    static unsigned int T0Count;
+    TL0 = 0x9C; //设置定时初值
+    TH0 = 0xFF; //设置定时初值
+    T0Count++;
+    Counter++;
+    Counter %= 100;
+    if (Counter < Compare)
+    {
+        LED = 0;
+        Motor = 1;
+    }
+    else
+    {
+        LED = 1;
+        Motor = 0;
+    }
+}
+```
