@@ -14,7 +14,7 @@ This is a project created to learn 51.
 
 AD数模转换。
 
-详见：[BasicalFunc->AD数模转换]
+详见：[BasicalFunc->AD数模转换](#ad-xpt2016-数模转换函数)
 
 ### 2022-4-30
 
