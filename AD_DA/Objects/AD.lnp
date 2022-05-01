@@ -1,0 +1,6 @@
+".\Objects\mainAD.obj",
+".\Objects\Delay.obj",
+".\Objects\LCD1602.obj",
+".\Objects\XPT2046.obj" 
+TO ".\Objects\AD" 
+PRINT(".\Listings\AD.m51") RAMSIZE(256) 

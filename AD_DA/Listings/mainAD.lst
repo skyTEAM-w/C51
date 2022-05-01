@@ -1,0 +1,46 @@
+C51 COMPILER V9.60.0.0   MAINAD                                                            05/01/2022 12:12:22 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAINAD
+OBJECT MODULE PLACED IN .\Objects\mainAD.obj
+COMPILER INVOKED BY: D:\Program files\Keil\C51\BIN\C51.EXE mainAD.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\
+                    -Listings\mainAD.lst) TABS(2) OBJECT(.\Objects\mainAD.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "LCD1602.h"
+   3          #include "Delay.h"
+   4          #include "XPT2046.h"
+   5          
+   6          unsigned int ADValue;
+   7          
+   8          void main()
+   9          {
+  10   1          LCD_Init();
+  11   1          LCD_ShowString(1, 1, "ADJ NTC RG");
+  12   1          while(1)
+  13   1          {
+  14   2              ADValue = XPT2046_READ_AD(XPT2046_XP_8);
+  15   2              LCD_ShowNum(2,1,ADValue,3);
+  16   2              ADValue = XPT2046_READ_AD(XPT2046_YP_8);
+  17   2              LCD_ShowNum(2,5,ADValue,3);
+  18   2              ADValue = XPT2046_READ_AD(XPT2046_VBAT_8);
+  19   2              LCD_ShowNum(2,9,ADValue,3);
+  20   2              Delay(5);
+  21   2          }
+  22   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     94    ----
+   CONSTANT SIZE    =     11    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

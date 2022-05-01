@@ -1,0 +1,75 @@
+C51 COMPILER V9.60.0.0   XPT2046                                                           05/01/2022 12:08:06 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE XPT2046
+OBJECT MODULE PLACED IN .\Objects\XPT2046.obj
+COMPILER INVOKED BY: D:\Program files\Keil\C51\BIN\C51.EXE XPT2046.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.
+                    -\Listings\XPT2046.lst) TABS(2) OBJECT(.\Objects\XPT2046.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "Delay.h"
+   3          
+   4          sbit XPT2046_CS = P3 ^ 5;
+   5          sbit XPT2046_DCLK = P3 ^ 6;
+   6          sbit XPT2046_DIN = P3 ^ 4;
+   7          sbit XPT2046_DOUT = P3 ^ 7;
+   8          
+   9          /**
+  10           * @brief XPT2046 AD读取函数
+  11           *
+  12           * @param Command 指令字（具体配置见参考手册）
+  13           * @return unsigned int 等效数字值
+  14           */
+  15          
+  16          unsigned int XPT2046_READ_AD(unsigned char Command)
+  17          {
+  18   1          unsigned char i;
+  19   1          unsigned int AD_VAL;
+  20   1          XPT2046_DCLK = 0;
+  21   1          XPT2046_CS = 0;
+  22   1      
+  23   1          for (i = 0; i < 8; i++)
+  24   1          {
+  25   2              XPT2046_DIN = Command & (0x80 >> i);
+  26   2              XPT2046_DCLK = 1;
+  27   2              Delay(1);
+  28   2              XPT2046_DCLK = 0;
+  29   2          }
+  30   1      
+  31   1          for (i = 0; i < 16; i++)
+  32   1          {
+  33   2              XPT2046_DCLK = 1;
+  34   2              XPT2046_DCLK = 0;
+  35   2              if (XPT2046_DOUT)
+  36   2              {
+  37   3                  AD_VAL |= (0x8000 >> i);
+  38   3              }
+  39   2          }
+  40   1      
+  41   1          XPT2046_CS = 1;
+  42   1      
+  43   1          if(Command & 0x08) {
+  44   2              return AD_VAL >> 8;
+  45   2          }
+  46   1          else {
+  47   2              return AD_VAL >> 4;
+  48   2          }
+  49   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    135    ----
+   CONSTANT SIZE    =   ----    ----
+C51 COMPILER V9.60.0.0   XPT2046                                                           05/01/2022 12:08:06 PAGE 2   
+
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
