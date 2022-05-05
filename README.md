@@ -10,7 +10,11 @@ This is a project created to learn 51.
 
 ## 更新
 
-### 2022 -5-1
+### 2022-5-5
+
+红外遥控相关函数以及根据红外接收时序优化的定时器相关函数。
+
+### 2022-5-1
 
 AD数模转换。
 
@@ -70,6 +74,7 @@ DS18B20温度传感器，实现温度的读取。
 10. AT24C02 存储相关函数
 11. DS18B20 温度传感相关函数
 12. AD XPT2046 数模转换函数
+13. IR 红外遥控相关函数
 
 ### 使用
 
@@ -1204,6 +1209,212 @@ unsigned int XPT2046_READ_AD(unsigned char Command)
     }
 }
 ```
+
+#### IR 红外遥控相关函数
+
+包含以下几个部分：
+
+1. IR.* 红外遥控
+2. Int0.* 外部中断
+3. Timer0.* 定时器
+
+其中 1 继承自 2 与 3.
+
+**IR**
+
+头文件IR.h
+
+```c
+#ifndef __IR_H__
+#define __IR_H__
+
+#define IR_POWER		0x45
+#define IR_MODE			0x46
+#define IR_MUTE			0x47
+#define IR_START_STOP	0x44
+#define IR_PREVIOUS		0x40
+#define IR_NEXT			0x43
+#define IR_EQ			0x07
+#define IR_VOL_MINUS	0x15
+#define IR_VOL_ADD		0x09
+#define IR_0			0x16
+#define IR_RPT			0x19
+#define IR_USD			0x0D
+#define IR_1			0x0C
+#define IR_2			0x18
+#define IR_3			0x5E
+#define IR_4			0x08
+#define IR_5			0x1C
+#define IR_6			0x5A
+#define IR_7			0x42
+#define IR_8			0x52
+#define IR_9			0x4A     
+
+void IR_Init();
+unsigned char IR_GetDataFlag(void);
+unsigned char IR_GetRepeatFlag(void);
+unsigned char IR_GetCommand(void);
+unsigned char IR_GetAddress(void);
+
+#endif
+```
+
+源文件IR.c
+
+```c
+#include <REGX52.H>
+#include "Timer0.h"
+#include "Int0.h"
+
+unsigned int IR_Time;   //时间
+unsigned char IR_State; //状态, 0->空闲, 1->等待, 2->接收与解码
+
+unsigned char IR_Data[4]; //数据缓存
+unsigned char IR_pData;
+
+unsigned char IR_DataFlag;   //数据结束标志
+unsigned char IR_RepeatFlag; //重复标志
+unsigned char IR_Address;    //地址码
+unsigned char IR_Command;    //命令
+
+/**
+ * @brief 红外接收初始化函数
+ * 
+ */
+void IR_Init(void)
+{
+    Timer0_Init();
+    Int0_Init();
+}
+
+/**
+ * @brief get方法区
+ * 
+ */
+
+/**
+ * @brief 获取DataFlag
+ * 
+ * @return unsigned char 
+ * @retval IR_DataFlag
+ */
+unsigned char IR_GetDataFlag(void)
+{
+    if (IR_DataFlag)
+    {
+        IR_DataFlag = 0;
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * @brief 获取RepeatFlag
+ * 
+ * @return unsigned char 
+ * @retval IR_RepeatFlag
+ */
+unsigned char IR_GetRepeatFlag(void)
+{
+    if(IR_RepeatFlag)
+    {
+        IR_RepeatFlag = 0;
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ * @brief 获取红外命令
+ * 
+ * @return unsigned char 
+ * @retval IR_Command
+ */
+unsigned char IR_GetCommand(void)
+{
+    return IR_Command;
+}
+
+/**
+ * @brief 获取地址
+ * 
+ * @return unsigned char 
+ * @retval IR_Address
+ */
+unsigned char IR_GetAddress(void)
+{
+    return IR_Address;
+}
+
+/**
+ * @brief 红外外部中断中断
+ * 
+ */
+void Int0_Rountine(void) interrupt 0
+{
+    if (IR_State == 0)
+    {
+        Timer0_SetCounter(0);
+        Timer0_Run(1);
+        IR_State = 1;
+    }
+    else if (IR_State == 1)
+    {
+        IR_Time = Timer0_GetCounter();
+        Timer0_SetCounter(0);
+        if (IR_Time > 12442 - 500 && IR_Time < 12442 + 500)
+        {
+            IR_State = 2; //解码数据状态
+        }
+        else if (IR_Time > 10368 - 500 && IR_Time < 10368 + 500)
+        {
+            IR_RepeatFlag = 1;
+            Timer0_Run(0); //计算器停止
+            IR_State = 0;  //状态回0
+        }
+        else
+        {
+            IR_State = 1;
+        }
+    }
+    else if (IR_State == 2)
+    {
+        IR_Time = Timer0_GetCounter();
+        Timer0_SetCounter(0);
+        if (IR_Time > 1032 - 500 && IR_Time < 1032 + 500)
+        {
+            IR_Data[IR_pData / 8] &= ~(0x01 << (IR_pData % 8));
+            IR_pData++;
+        }
+        else if (IR_Time > 2074 - 500 && IR_Time < 2074 + 500)
+        {
+            IR_Data[IR_pData / 8] |= (0x01 << (IR_pData % 8));
+            IR_pData++;
+        }
+        else
+        {
+            //接收错误
+            IR_pData = 0;
+            IR_State = 1;
+        }
+        //数据验证
+        if (IR_pData >= 32)
+        {
+            IR_pData = 0;
+            if ((IR_Data[0] == ~IR_Data[1]) && (IR_Data[2] == ~IR_Data[3]))
+            {
+                IR_Address = IR_Data[0];
+                IR_Command = IR_Data[2];
+                IR_DataFlag = 1;
+            }
+            Timer0_Run(0);
+            IR_State = 0;
+        }
+    }
+}
+```
+
+
 
 ## 关于定时器扫描数码管与按键
 
