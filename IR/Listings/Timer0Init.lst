@@ -1,0 +1,13 @@
+C51 COMPILER V9.60.0.0   TIMER0INIT                                                        05/05/2022 15:57:43 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIMER0INIT
+OBJECT MODULE PLACED IN .\Objects\Timer0Init.obj
+COMPILER INVOKED BY: D:\Program files\Keil\C51\BIN\C51.EXE Timer0Init.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRIN
+                    -T(.\Listings\Timer0Init.lst) TABS(2) OBJECT(.\Objects\Timer0Init.obj)
+
+line level    source
+
+*** ERROR C318 OF Timer0Init.c: can't open file 'Timer0Init.c'
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)
