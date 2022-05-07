@@ -14,6 +14,8 @@ This is a project created to learn 51.
 
 红外遥控相关函数以及根据红外接收时序优化的定时器相关函数。
 
+详见：[BasicalFunc->IR红外遥控相关函数](#ir-红外遥控相关函数)
+
 ### 2022-5-1
 
 AD数模转换。
